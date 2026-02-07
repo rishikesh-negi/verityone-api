@@ -1,0 +1,23 @@
+{
+  "include": ["./src/**/*", "./tests/**/*", "./index.ts", "./app.ts"],
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "erasableSyntaxOnly": true,
+
+    "verbatimModuleSyntax": true,
+
+    "skipLibCheck": true
+  }
+}
