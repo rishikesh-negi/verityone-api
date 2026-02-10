@@ -10,6 +10,15 @@ export default [
   eslintPluginImport.flatConfigs.recommended,
   eslintConfigPrettier,
   {
+    settings: {
+      "import/resolver": {
+        typescript: {
+          project: "./tsconfig.json",
+        },
+      },
+    },
+  },
+  {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
     languageOptions: { globals: globals.node },
     rules: {
