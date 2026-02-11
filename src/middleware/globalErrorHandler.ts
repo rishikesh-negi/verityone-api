@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
-import type { AppError } from "./AppError.js";
+import { AppError } from "../errors/AppError.js";
+import { transformError } from "../errors/transformError.js";
+import { GENERIC_ERROR_MSG } from "../utils/constants.js";
 
 export type SendErrorFunction = (
   err: Error | AppError,
@@ -10,10 +12,10 @@ export type SendErrorFunction = (
 function generateErrorResponse(
   err: Error | AppError,
   res: Response,
-  message: string,
+  message: string = GENERIC_ERROR_MSG,
 ) {
-  const status = "statusCode" in err ? err.status : "error";
-  const statusCode = "statusCode" in err ? err.statusCode : 500;
+  const status = err instanceof AppError ? err.status : "error";
+  const statusCode = err instanceof AppError ? err.statusCode : 500;
 
   return res.status(statusCode).json({
     status,
@@ -23,10 +25,10 @@ function generateErrorResponse(
 
 // -----> Function to send a detailed error response in development for debugging:
 const sendErrorInDevelopment: SendErrorFunction = function (err, req, res) {
-  // Sending an error response for invalid/failed API requests:
+  // Sending a detailed error in response to an invalid/failed API requests:
   if (req.originalUrl.startsWith("/api")) {
-    const statusCode = "statusCode" in err ? err.statusCode : 500;
-    const status = "statusCode" in err ? err.status : "error";
+    const statusCode = err instanceof AppError ? err.statusCode : 500;
+    const status = err instanceof AppError ? err.status : "error";
 
     return res.status(statusCode).json({
       status,
@@ -45,19 +47,19 @@ const sendErrorInProduction: SendErrorFunction = function (err, req, res) {
   // Sending an error response for invalid/failed API requests:
   if (req.originalUrl.startsWith("/api")) {
     // Operational error - Send message to the client:
-    if ("isOperational" in err)
+    if (err instanceof AppError)
       return generateErrorResponse(err, res, err.message);
 
     // Programming/unknown error - Log it to the console and send a generic error message to the client:
     console.error("ERROR: ", err);
-    return generateErrorResponse(err, res, "Someting went wrong!");
+    return generateErrorResponse(err, res, GENERIC_ERROR_MSG);
   }
 
   // Non-API error:
-  if ("isOperational" in err)
+  if (err instanceof AppError)
     return generateErrorResponse(err, res, err.message);
 
-  return generateErrorResponse(err, res, "Someting went wrong!");
+  return generateErrorResponse(err, res, GENERIC_ERROR_MSG);
 };
 
 export function globalErrorHandler(
@@ -74,6 +76,7 @@ export function globalErrorHandler(
   }
 
   if (process.env["NODE_ENV"] === "production") {
-    const error = { ...err };
+    const error = transformError(err);
+    sendErrorInProduction(error, req, res);
   }
 }
