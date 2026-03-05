@@ -4,7 +4,7 @@
   "description": "Backend API for the Happy Cubicles web application",
   "repository": {
     "type": "git",
-    "url": "git remote add origin https://github.com/rishikesh-negi/happy-cubicles-api.git"
+    "url": "git remote add origin https://github.com/rishikesh-negi/beatific-api.git"
   },
   "license": "ISC",
   "author": "Rishikesh Negi",
