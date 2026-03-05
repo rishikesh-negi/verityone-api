@@ -21,15 +21,13 @@ export class BadRequestError extends AppError {
 }
 
 export class UnauthorizedAccessError extends AppError {
-  constructor(
-    message = "Authentication/Authorization Required for this Action",
-  ) {
+  constructor(message = "Unauthorized Access") {
     super(message, 401);
   }
 }
 
 export class ForbiddebAccessError extends AppError {
-  constructor(message = "Authorization Failed") {
+  constructor(message = "Forbidden: Authorization Failed") {
     super(message, 403);
   }
 }
