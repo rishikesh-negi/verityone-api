@@ -25,7 +25,7 @@ function generateErrorResponse(
 
 // -----> Function to send a detailed error response in development for debugging:
 const sendErrorInDevelopment: SendErrorFunction = function (err, req, res) {
-  // Sending a detailed error in response to an invalid/failed API requests:
+  // Sending a detailed error in response to an invalid/failed API request:
   if (req.originalUrl.startsWith("/api")) {
     const statusCode = err instanceof AppError ? err.statusCode : 500;
     const status = err instanceof AppError ? err.status : "error";
@@ -50,7 +50,7 @@ const sendErrorInProduction: SendErrorFunction = function (err, req, res) {
     if (err instanceof AppError)
       return generateErrorResponse(err, res, err.message);
 
-    // Programming/unknown error - Log it to the console and send a generic error message to the client:
+    // Programming or unknown error - Log it to the console and send a generic error message to the client:
     console.error("ERROR: ", err);
     return generateErrorResponse(err, res, GENERIC_ERROR_MSG);
   }
