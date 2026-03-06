@@ -1,4 +1,11 @@
-import { model, Schema, type InferSchemaType } from "mongoose";
+import { model, Query, Schema, type InferSchemaType } from "mongoose";
+import {
+  createPaswordResetToken,
+  hashPasswordPreSave,
+  matchPasswords,
+  passwordChangedAfter,
+  setPasswordChangeTimestampPreSave,
+} from "../middleware/passwordManagementMiddleware.js";
 import {
   emailAddressFormatValidator,
   organizationNameValidator,
@@ -49,6 +56,12 @@ const organizationSchema = new Schema(
       },
       maxLength: [50, "The email address cannot exceed 50 characters"],
       message: "Please provide a valid email address",
+    },
+    emailVerificationToken: String,
+    emailVerificationExpires: Date,
+    emailIsVerified: {
+      type: Boolean,
+      default: false,
     },
     postalCode: {
       type: String,
@@ -104,6 +117,30 @@ const organizationSchema = new Schema(
     timestamps: true,
   },
 );
+
+organizationSchema.pre("save", hashPasswordPreSave);
+organizationSchema.pre("save", setPasswordChangeTimestampPreSave);
+
+organizationSchema.pre(
+  /^find/,
+  async function (this: Query<unknown, IOrganization>) {
+    if (this.getOptions()["includeInactive"]) return;
+    this.where({ active: { $ne: false } });
+  },
+);
+
+organizationSchema.pre(
+  /^find/,
+  async function (this: Query<unknown, IOrganization>) {
+    if (this.getOptions()["includeUnverified"]) return;
+    this.where({ emailIsVerified: { $ne: false } });
+  },
+);
+
+organizationSchema.methods["matchPasswords"] = matchPasswords;
+organizationSchema.methods["passwordChangedAfter"] = passwordChangedAfter;
+organizationSchema.methods["createPasswordResetToken"] =
+  createPaswordResetToken;
 
 export type IOrganization = InferSchemaType<typeof organizationSchema>;
 
