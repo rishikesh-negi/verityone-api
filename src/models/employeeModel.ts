@@ -1,6 +1,9 @@
-import { Schema, model, type InferSchemaType } from "mongoose";
+import { Query, Schema, model, type InferSchemaType } from "mongoose";
 import {
+  createPaswordResetToken,
   hashPasswordPreSave,
+  matchPasswords,
+  passwordChangedAfter,
   setPasswordChangeTimestampPreSave,
 } from "../middleware/passwordManagementMiddleware.js";
 import {
@@ -66,6 +69,12 @@ const employeeSchema = new Schema(
       maxLength: [50, "The email address cannot exceed 50 characters"],
       message: "Please provide a valid email address",
     },
+    emailVerificationToken: String,
+    emailVerificationExpires: Date,
+    emailIsVerified: {
+      type: Boolean,
+      default: false,
+    },
     password: {
       type: String,
       required: [true, "Password is required to secure your account"],
@@ -94,18 +103,22 @@ const employeeSchema = new Schema(
   { timestamps: true },
 );
 
-employeeSchema.pre("save", function () {
-  hashPasswordPreSave(this);
+employeeSchema.pre("save", hashPasswordPreSave);
+employeeSchema.pre("save", setPasswordChangeTimestampPreSave);
+
+employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
+  if (this.getOptions()["includeInactive"]) return;
+  this.where({ active: { $ne: false } });
 });
 
-employeeSchema.pre("save", function () {
-  setPasswordChangeTimestampPreSave(this);
+employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
+  if (this.getOptions()["includeUnverified"]) return;
+  this.where({ emailIsVerified: { $ne: false } });
 });
 
-employeeSchema.pre(/^find/, async function () {
-  if (!("find" in this)) return;
-  this.find({ active: { $ne: false } });
-});
+employeeSchema.methods["matchPasswords"] = matchPasswords;
+employeeSchema.methods["passwordChangedAfter"] = passwordChangedAfter;
+employeeSchema.methods["createPasswordResetToken"] = createPaswordResetToken;
 
 export type IEmployee = InferSchemaType<typeof employeeSchema>;
 
