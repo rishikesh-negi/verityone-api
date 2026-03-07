@@ -1,10 +1,12 @@
 import htmlToText from "html-to-text";
 import type { HydratedDocument } from "mongoose";
 import nodemailer from "nodemailer";
+import hbs from "nodemailer-express-handlebars";
 import type SMTPPool from "nodemailer/lib/smtp-pool/index.js";
 import type { IEmployee } from "../models/employeeModel.js";
 import type { IOrganization } from "../models/organizationModel.js";
 import { renderEmailTemplate } from "./renderEmailTemplate.js";
+import path from "node:path";
 
 const transportOptions: SMTPPool.Options =
   process.env["NODE_ENV"] === "production"
@@ -29,10 +31,10 @@ const transportOptions: SMTPPool.Options =
       };
 
 export default class Email {
-  to: string;
-  name?: string;
-  url: string;
-  from: string;
+  readonly to: string;
+  readonly name?: string;
+  readonly url: string;
+  readonly from: string;
 
   constructor(user: HydratedDocument<IEmployee | IOrganization>, url: string) {
     this.to = user?.email;
@@ -42,9 +44,26 @@ export default class Email {
   }
 
   newTransport() {
-    return process.env["NODE_ENV"] === "production"
-      ? nodemailer.createTransport(transportOptions)
-      : nodemailer.createTransport(transportOptions);
+    const transporter =
+      process.env["NODE_ENV"] === "production"
+        ? nodemailer.createTransport(transportOptions)
+        : nodemailer.createTransport(transportOptions);
+
+    transporter.use(
+      "compile",
+      hbs({
+        viewEngine: {
+          extname: ".hbs",
+          layoutsDir: path.resolve("../views/emails/layouts"),
+          partialsDir: path.resolve("../views/emails/partials"),
+          defaultLayout: "main",
+        },
+        viewPath: path.resolve("../views/emails/templates"),
+        extName: ".hbs",
+      }),
+    );
+
+    return transporter;
   }
 
   async send(
