@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import type { HydratedDocument } from "mongoose";
 import type { IEmployee } from "../models/employeeModel.js";
 import type { IOrganization } from "../models/organizationModel.js";
+import { generateToken } from "../utils/generateToken.js";
 
 // The HydratedDocument utility type is used to type a mongoose document:
 export async function hashPasswordPreSave(
@@ -43,13 +43,10 @@ export function passwordChangedAfter(
 export function createPaswordResetToken(
   this: HydratedDocument<IEmployee | IOrganization>,
 ): string {
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  this.passwordResetToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
+  const { token, hashedToken } = generateToken();
+  this.passwordResetToken = hashedToken;
 
   this.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
 
-  return resetToken;
+  return token;
 }
