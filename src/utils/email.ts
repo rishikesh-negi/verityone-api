@@ -2,6 +2,7 @@ import htmlToText from "html-to-text";
 import type { HydratedDocument } from "mongoose";
 import nodemailer from "nodemailer";
 import hbs from "nodemailer-express-handlebars";
+import juice from "juice";
 import type SMTPPool from "nodemailer/lib/smtp-pool/index.js";
 import type { IEmployee } from "../models/employeeModel.js";
 import type { IOrganization } from "../models/organizationModel.js";
@@ -71,9 +72,10 @@ export default class Email {
     subject: string,
     data?: Record<string, unknown>,
   ) {
-    const html = await renderEmailTemplate(template, data);
+    const unstyledHtml = await renderEmailTemplate(template, data);
+    const html = juice(unstyledHtml);
 
-    const mailOptions = {
+    await this.newTransport().sendMail({
       from: this.from,
       to: this.to,
       subject,
@@ -81,8 +83,19 @@ export default class Email {
       text: htmlToText.convert(html, {
         wordwrap: false,
       }),
-    };
+    });
+  }
 
-    await this.newTransport().sendMail(mailOptions);
+  async sendWelcome() {
+    const subject = "Welcome to VerityOne";
+    const url = "TBD";
+
+    await this.send("welcome", subject, {
+      subject,
+      userEmail: this.to,
+      currentYear: new Date().getFullYear(),
+      name: this.name,
+      url,
+    });
   }
 }
