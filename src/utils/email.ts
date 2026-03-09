@@ -36,9 +36,11 @@ export default class Email {
   readonly name?: string;
   readonly url: string;
   readonly from: string;
+  #userType: "employee" | "organization";
 
   constructor(user: HydratedDocument<IEmployee | IOrganization>, url: string) {
     this.to = user?.email;
+    this.#userType = "firstName" in user ? "employee" : "organization";
     this.name = "firstName" in user ? user.firstName : user.name;
     this.url = url;
     this.from = `Beatific Team <${process.env["EMAIL_FROM"]}>`;
@@ -86,11 +88,12 @@ export default class Email {
     });
   }
 
-  async sendWelcome() {
+  async sendWelcome(url: string) {
     const subject = "Welcome to VerityOne";
-    const url = "TBD";
+    const template =
+      this.#userType === "employee" ? "welcomeEmployee" : "welcomeOrganization";
 
-    await this.send("welcome", subject, {
+    await this.send(template, subject, {
       subject,
       userEmail: this.to,
       currentYear: new Date().getFullYear(),
