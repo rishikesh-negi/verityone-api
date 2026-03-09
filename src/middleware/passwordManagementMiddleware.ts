@@ -45,7 +45,6 @@ export function createPaswordResetToken(
 ): string {
   const { token, hashedToken } = generateToken();
   this.passwordResetToken = hashedToken;
-
   this.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
 
   return token;
