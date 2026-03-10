@@ -24,6 +24,7 @@ app.use(
       if (allowedOrigins.indexOf(origin!) !== -1) callback(null, true);
       else callback(new Error("Not allowed by the API's CORS policy"));
     },
+    credentials: true,
   }),
 );
 app.options("*", cors());
