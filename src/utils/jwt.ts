@@ -1,18 +1,16 @@
-import type { Request, Response } from "express";
 import jwt, { type Secret } from "jsonwebtoken";
-import type { HydratedDocument } from "mongoose";
 import ms from "ms";
-import type { IEmployee } from "../models/employeeModel.js";
-import type { IOrganization } from "../models/organizationModel.js";
+import crypto from "crypto";
+import type { CreateSendAuthJWTOptions } from "../types/types.js";
+import { RefreshToken } from "../models/deviceSessionModel.js";
+import { AppError } from "../errors/AppError.js";
 
 const ACCESS_JWT_SECRET: string = process.env["ACCESS_JWT_SECRET"]!;
 const REFRESH_JWT_SECRET: string = process.env["REFREST_JWT_SECRET"]!;
 
 export function signAuthJWT(payload: object, tokenType: "access" | "refresh") {
   const jwtSecret: Secret =
-    tokenType === "access"
-      ? process.env["ACCESS_JWT_SECRET"]!
-      : process.env["REFRESH_JWT_SECRET"]!;
+    tokenType === "access" ? ACCESS_JWT_SECRET : REFRESH_JWT_SECRET;
 
   const expiresIn: ms.StringValue = (
     tokenType === "access"
@@ -20,7 +18,7 @@ export function signAuthJWT(payload: object, tokenType: "access" | "refresh") {
       : process.env["REFRESH_JWT_EXPIRES_IN"]
   ) as ms.StringValue;
 
-  jwt.sign(payload, jwtSecret, {
+  return jwt.sign(payload, jwtSecret, {
     expiresIn,
   });
 }
@@ -30,30 +28,55 @@ export function verifyAuthJWT(token: string, type: "access" | "refresh") {
   return jwt.verify(token, SECRET);
 }
 
-export function createAndSendAuthJWT(
-  user: HydratedDocument<IEmployee | IOrganization>,
-  statusCode: number,
-  req: Request<unknown>,
-  res: Response,
-  sendUserData: boolean = false,
-) {
-  const token = signAuthJWT({ id: user._id }, "access");
-  const jwtExpiresIn: number =
-    Number.parseInt(process.env["AUTH_JWT_COOKIE_EXPIRES_IN"]!) *
-    24 *
-    60 *
-    60 *
-    1000;
+export async function createAndSendAuthJWT({
+  tokenType,
+  user,
+  statusCode,
+  req,
+  res,
+  sendUserData = false,
+}: CreateSendAuthJWTOptions) {
+  try {
+    const payload = {
+      id: user.id,
+      userType: "firstName" in user ? "employee" : "organization",
+    };
+    const token = signAuthJWT(payload, tokenType);
 
-  res.cookie("jwt", token, {
-    expires: new Date(Date.now() + jwtExpiresIn),
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-    httpOnly: true,
-  });
+    if (tokenType === "refresh") {
+      const expiresAt: Date = new Date(
+        Date.now() +
+          Number.parseInt(process.env["REFRESH_JWT_EXPIRES_IN"]!) *
+            24 *
+            60 *
+            60 *
+            1000,
+      );
 
-  res.status(statusCode).json({
-    status: "success",
-    token,
-    ...(sendUserData && { data: user }),
-  });
+      const userType = "firstName" in user ? "Employee" : "Organization";
+      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+      await RefreshToken.create({
+        userId: user.id,
+        userType,
+        tokenHash,
+        expiresAt,
+      });
+
+      res.cookie("refreshToken", token, {
+        expires: expiresAt,
+        secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+        httpOnly: true,
+        sameSite: "strict",
+      });
+    }
+
+    res.status(statusCode).json({
+      status: "success",
+      token,
+      ...(sendUserData && { data: user }),
+    });
+  } catch {
+    throw new AppError("Error creating and sending token!", 500);
+  }
 }
