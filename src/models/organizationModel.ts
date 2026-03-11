@@ -1,10 +1,17 @@
-import { model, Query, Schema, type InferSchemaType } from "mongoose";
+import {
+  model,
+  Query,
+  Schema,
+  type HydratedDocument,
+  type InferSchemaType,
+} from "mongoose";
 import {
   createPaswordResetToken,
   hashPasswordPreSave,
   matchPasswords,
   passwordChangedAfter,
   setPasswordChangeTimestampPreSave,
+  type PasswordManagementSchemaMethods,
 } from "../middleware/passwordManagementMiddleware.js";
 import {
   emailAddressFormatValidator,
@@ -142,7 +149,10 @@ organizationSchema.methods["passwordChangedAfter"] = passwordChangedAfter;
 organizationSchema.methods["createPasswordResetToken"] =
   createPaswordResetToken;
 
-export type IOrganization = InferSchemaType<typeof organizationSchema>;
+type Organization = InferSchemaType<typeof organizationSchema>;
+export type IOrganization = Organization &
+  PasswordManagementSchemaMethods<Organization>;
+export type OrganizationDocument = HydratedDocument<IOrganization>;
 
 export const Organization = model<IOrganization>(
   "Organization",
