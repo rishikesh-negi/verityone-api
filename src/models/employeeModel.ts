@@ -1,10 +1,17 @@
-import { Query, Schema, model, type InferSchemaType } from "mongoose";
+import {
+  Query,
+  Schema,
+  model,
+  type HydratedDocument,
+  type InferSchemaType,
+} from "mongoose";
 import {
   createPaswordResetToken,
   hashPasswordPreSave,
   matchPasswords,
   passwordChangedAfter,
   setPasswordChangeTimestampPreSave,
+  type PasswordManagementSchemaMethods,
 } from "../middleware/passwordManagementMiddleware.js";
 import {
   emailAddressFormatValidator,
@@ -77,7 +84,7 @@ const employeeSchema = new Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required to secure your account"],
+      required: [true, "A valid password is required to secure your account"],
       select: false,
       validate: {
         validator: passwordValidator,
@@ -120,6 +127,8 @@ employeeSchema.methods["matchPasswords"] = matchPasswords;
 employeeSchema.methods["passwordChangedAfter"] = passwordChangedAfter;
 employeeSchema.methods["createPasswordResetToken"] = createPaswordResetToken;
 
-export type IEmployee = InferSchemaType<typeof employeeSchema>;
+type Employee = InferSchemaType<typeof employeeSchema>;
+export type IEmployee = Employee & PasswordManagementSchemaMethods<Employee>;
+export type EmployeeDocument = HydratedDocument<IEmployee>;
 
 export const Employee = model<IEmployee>("Employee", employeeSchema);
