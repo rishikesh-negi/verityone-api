@@ -1,9 +1,11 @@
-import jwt, { type Secret } from "jsonwebtoken";
-import ms from "ms";
 import crypto from "crypto";
-import type { CreateSendAuthJWTOptions } from "../types/types.js";
-import { RefreshToken } from "../models/deviceSessionModel.js";
-import { AppError } from "../errors/AppError.js";
+import jwt, { type JwtPayload, type Secret } from "jsonwebtoken";
+import type { HydratedDocument } from "mongoose";
+import ms from "ms";
+import { promisify } from "util";
+import type { IEmployee } from "../models/employeeModel.js";
+import type { IOrganization } from "../models/organizationModel.js";
+import type { AuthJWTPayload } from "../types/types.js";
 
 const ACCESS_JWT_SECRET: string = process.env["ACCESS_JWT_SECRET"]!;
 const REFRESH_JWT_SECRET: string = process.env["REFREST_JWT_SECRET"]!;
@@ -23,60 +25,51 @@ export function signAuthJWT(payload: object, tokenType: "access" | "refresh") {
   });
 }
 
-export function verifyAuthJWT(token: string, type: "access" | "refresh") {
+export async function verifyAuthJWT(
+  token: string,
+  type: "access" | "refresh",
+): Promise<JwtPayload> {
   const SECRET = type === "access" ? ACCESS_JWT_SECRET : REFRESH_JWT_SECRET;
-  return jwt.verify(token, SECRET);
+
+  // Promisifying JWT verification to free up Node.js event loop:
+  const verifyAsync = promisify(
+    jwt.verify as (token: string, secret: string) => JwtPayload,
+  );
+  const decoded = (await verifyAsync(token, SECRET)) as JwtPayload;
+
+  return decoded;
 }
 
-export async function createAndSendAuthJWT({
-  tokenType,
-  user,
-  statusCode,
-  req,
-  res,
-  sendUserData = false,
-}: CreateSendAuthJWTOptions) {
-  try {
-    const payload = {
-      id: user.id,
-      userType: "firstName" in user ? "employee" : "organization",
-    };
-    const token = signAuthJWT(payload, tokenType);
+export function createRefreshToken(
+  user: HydratedDocument<IEmployee | IOrganization>,
+  payload: AuthJWTPayload,
+) {
+  const accountType = "firstName" in user ? "employee" : "organization";
 
-    if (tokenType === "refresh") {
-      const expiresAt: Date = new Date(
-        Date.now() +
-          Number.parseInt(process.env["REFRESH_JWT_EXPIRES_IN"]!) *
-            24 *
-            60 *
-            60 *
-            1000,
-      );
+  const refreshToken = signAuthJWT(payload, "refresh");
+  const expiresAt: Date = new Date(
+    Date.now() +
+      Number.parseInt(process.env["REFRESH_JWT_EXPIRES_IN"]!) *
+        24 *
+        60 *
+        60 *
+        1000,
+  );
 
-      const userType = "firstName" in user ? "Employee" : "Organization";
-      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const tokenHash = crypto
+    .createHash("sha256")
+    .update(refreshToken)
+    .digest("hex");
 
-      await RefreshToken.create({
-        userId: user.id,
-        userType,
-        tokenHash,
-        expiresAt,
-      });
+  return { refreshToken, tokenHash, expiresAt };
+}
 
-      res.cookie("refreshToken", token, {
-        expires: expiresAt,
-        secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-        httpOnly: true,
-        sameSite: "strict",
-      });
-    }
-
-    res.status(statusCode).json({
-      status: "success",
-      token,
-      ...(sendUserData && { data: user }),
-    });
-  } catch {
-    throw new AppError("Error creating and sending token!", 500);
-  }
+export function createAccessToken(
+  user: HydratedDocument<IEmployee | IOrganization>,
+) {
+  const accountType = "firstName" in user ? "employee" : "organization";
+  const payload = {
+    id: user.id,
+    accountType,
+  };
 }
