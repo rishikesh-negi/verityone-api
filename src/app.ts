@@ -6,9 +6,11 @@ import helmet from "helmet";
 import hpp from "hpp";
 import morgan from "morgan";
 import path from "path";
-import { sanitizeRequest } from "./utils/sanitizeData.js";
 import { AppError } from "./errors/AppError.js";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
+import { sanitizeRequest } from "./utils/sanitizeData.js";
+
+const __dirname = path.dirname(import.meta.dirname);
 
 const app = express();
 
@@ -27,7 +29,6 @@ app.use(
     credentials: true,
   }),
 );
-app.options("*", cors());
 app.use(express.static(path.join(__dirname, "../public")));
 app.use(helmet());
 
@@ -74,7 +75,7 @@ app.use((req, _res, next) => {
 
 // Mount routers here:
 
-app.all("*", (req, _res, next) => {
+app.all(/.*/, (req, _res, next) => {
   next(
     new AppError(
       `The requested resource ${req.originalUrl} does not exist`,
