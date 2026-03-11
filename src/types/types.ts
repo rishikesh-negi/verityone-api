@@ -3,11 +3,11 @@ import type { HydratedDocument } from "mongoose";
 import type { IEmployee } from "../models/employeeModel.js";
 import type { IOrganization } from "../models/organizationModel.js";
 
-export type Controller<T> = (
-  req: Request<unknown>,
+export type Controller = (
+  req: Request,
   res: Response,
-  next?: NextFunction,
-) => Promise<T>;
+  next: NextFunction,
+) => Promise<unknown | void>;
 
 export type CreateSendAuthJWTOptions = Required<{
   tokenType: "access" | "refresh";
@@ -17,3 +17,8 @@ export type CreateSendAuthJWTOptions = Required<{
   res: Response;
   sendUserData?: boolean;
 }>;
+
+export type AuthJWTPayload = {
+  id: string;
+  accountType: "employee" | "organization";
+};
