@@ -1,14 +1,14 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
+dotenv.config({ path: "./config.env" }); // Path has to be relative to the root folder, not the index.ts module's path
+
 import app from "./app.js";
+import mongoose from "mongoose";
 import { gracefulShutdown, shutdown } from "./utils/gracefulShutdown.js";
 
 process.on("uncaughtException", (err) => {
   console.log("🔴 Unhandled exception encountered! Shutting down...");
   console.log(`${err.name}: ${err.message}`);
 });
-
-dotenv.config({ path: "../config.env" });
 
 const DB = process.env["DATABASE"]?.replace(
   "<DB_PASSWORD>",
