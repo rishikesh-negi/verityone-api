@@ -34,15 +34,15 @@ const transportOptions: SMTPPool.Options =
 export default class Email {
   readonly to: string;
   readonly name?: string;
-  readonly url: string;
+  readonly url?: string;
   readonly from: string;
   #userType: "employee" | "organization";
 
-  constructor(user: HydratedDocument<IEmployee | IOrganization>, url: string) {
+  constructor(user: HydratedDocument<IEmployee | IOrganization>, url?: string) {
     this.to = user?.email;
     this.#userType = "firstName" in user ? "employee" : "organization";
     this.name = "firstName" in user ? user.firstName : user.name;
-    this.url = url;
+    if (url) this.url = url;
     this.from = `Beatific Team <${process.env["EMAIL_FROM"]}>`;
   }
 
@@ -88,7 +88,7 @@ export default class Email {
     });
   }
 
-  async sendWelcome(url: string) {
+  async sendWelcome() {
     const subject = "Welcome to VerityOne";
     const template =
       this.#userType === "employee" ? "welcomeEmployee" : "welcomeOrganization";
@@ -98,7 +98,7 @@ export default class Email {
       userEmail: this.to,
       currentYear: new Date().getFullYear(),
       name: this.name,
-      url,
+      url: this.url,
     });
   }
 }
