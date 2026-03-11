@@ -34,7 +34,7 @@ const deviceSessionSchema = new Schema(
 
 export type IDeviceSession = InferSchemaType<typeof deviceSessionSchema>;
 
-export const RefreshToken = model<IDeviceSession>(
-  "RefreshToken",
+export const DeviceSession = model<IDeviceSession>(
+  "DeviceSession",
   deviceSessionSchema,
 );
