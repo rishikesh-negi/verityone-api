@@ -1,7 +1,7 @@
 {
-  "name": "happy-cubicles-api",
+  "name": "verityone-api",
   "version": "1.0.0",
-  "description": "Backend API for the Happy Cubicles web application",
+  "description": "Backend API for the VerityOne platform",
   "repository": {
     "type": "git",
     "url": "git remote add origin https://github.com/rishikesh-negi/verityone-api.git"
