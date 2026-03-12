@@ -1,0 +1,6 @@
+{
+  "editor.wordWrap": "bounded",
+  "editor.wordWrapColumn": 120,
+  "prettier.printWidth": 100,
+  "yaml.format.printWidth": 100
+}
