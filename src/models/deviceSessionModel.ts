@@ -9,21 +9,15 @@ const deviceSessionSchema = new Schema(
     },
     userType: {
       type: String,
-      required: [
-        true,
-        "Please specify the account type ('Employee' or 'Organization')",
-      ],
+      required: [true, "Please specify the account type ('Employee' or 'Organization')"],
       enum: ["Employee", "Organization"],
     },
     tokenHash: {
       type: String,
-      required: [
-        true,
-        "Refresh token is required to validate the access tokens",
-      ],
+      required: [true, "Refresh token is required to validate the access tokens"],
     },
-    userAgent: String,
-    ipAddress: String,
+    userAgent: { type: String, default: null },
+    ipAddress: { type: String, default: null },
     expiresAt: {
       type: Date,
       required: [true, "Please specify the expiry time of the refresh token"],
@@ -34,7 +28,4 @@ const deviceSessionSchema = new Schema(
 
 export type IDeviceSession = InferSchemaType<typeof deviceSessionSchema>;
 
-export const DeviceSession = model<IDeviceSession>(
-  "DeviceSession",
-  deviceSessionSchema,
-);
+export const DeviceSession = model<IDeviceSession>("DeviceSession", deviceSessionSchema);
