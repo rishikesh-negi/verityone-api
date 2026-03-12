@@ -1,37 +1,36 @@
 import bcrypt from "bcryptjs";
 import type { HydratedDocument } from "mongoose";
-import type { EmployeeDocument } from "../models/employeeModel.js";
-import type { OrganizationDocument } from "../models/organizationModel.js";
 import { generateToken } from "../utils/generateToken.js";
 
-export type PasswordManagementSchemaMethods<T> = {
+type PasswordManagementProperties = {
+  password: string;
+  passwordChangedAt?: NativeDate | null;
+  passwordResetToken?: string | null;
+  passwordResetExpires?: NativeDate | null;
+};
+
+export type PasswordManagementSchemaMethods<T extends PasswordManagementProperties> = {
   hashPasswordPreSave(this: HydratedDocument<T>): Promise<void>;
 
   setPasswordChangeTimestampPreSave(this: HydratedDocument<T>): Promise<void>;
 
-  matchPasswords(
-    candidatePassword: string,
-    userPassword: string,
-  ): Promise<boolean>;
+  matchPasswords(candidatePassword: string, userPassword: string): Promise<boolean>;
 
-  passwordChangedAfter(
-    this: HydratedDocument<T>,
-    JWTTimestamp: number,
-  ): boolean;
+  passwordChangedAfter(this: HydratedDocument<T>, JWTTimestamp: number): boolean;
 
   createPaswordResetToken(this: HydratedDocument<T>): string;
 };
 
-// The HydratedDocument utility type is used to type a mongoose document:
-export async function hashPasswordPreSave(
-  this: EmployeeDocument | OrganizationDocument,
+// The HydratedDocument utility type is used to type a fetched mongoose document:
+export async function hashPasswordPreSave<T extends PasswordManagementProperties>(
+  this: HydratedDocument<T>,
 ): Promise<void> {
   if (!this.isModified("password")) return;
   this.password = await bcrypt.hash(this.password, 12);
 }
 
-export async function setPasswordChangeTimestampPreSave(
-  this: EmployeeDocument | OrganizationDocument,
+export async function setPasswordChangeTimestampPreSave<T extends PasswordManagementProperties>(
+  this: HydratedDocument<T>,
 ): Promise<void> {
   if (!this.isModified("password") || this.isNew) return;
   this.passwordChangedAt = new Date(Date.now() - 1000);
@@ -44,22 +43,20 @@ export async function matchPasswords(
   return await bcrypt.compare(candidatePassword, userPassword);
 }
 
-export function passwordChangedAfter(
-  this: EmployeeDocument | OrganizationDocument,
+export function passwordChangedAfter<T extends PasswordManagementProperties>(
+  this: HydratedDocument<T>,
   JWTTimestamp: number,
 ): boolean {
   if (this.passwordChangedAt) {
-    const passwordChangeTimestamp = Math.floor(
-      this.passwordChangedAt.getTime() / 1000,
-    );
+    const passwordChangeTimestamp = Math.floor(this.passwordChangedAt.getTime() / 1000);
     return JWTTimestamp < passwordChangeTimestamp;
   }
 
   return false;
 }
 
-export function createPaswordResetToken(
-  this: EmployeeDocument | OrganizationDocument,
+export function createPaswordResetToken<T extends PasswordManagementProperties>(
+  this: HydratedDocument<T>,
 ): string {
   const { token, hashedToken } = generateToken();
   this.passwordResetToken = hashedToken;
