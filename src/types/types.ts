@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import type { HydratedDocument } from "mongoose";
 import type { IEmployee } from "../models/employeeModel.js";
 import type { IOrganization } from "../models/organizationModel.js";
+import type { JwtPayload } from "jsonwebtoken";
 
 export type Controller = (
   req: Request,
@@ -18,7 +19,7 @@ export type CreateSendAuthJWTOptions = Required<{
   sendUserData?: boolean;
 }>;
 
-export type AuthJWTPayload = {
+export interface AuthJWTPayload extends JwtPayload {
   id: string;
-  accountType: "employee" | "organization";
-};
+  accountType: "Employee" | "Organization";
+}
