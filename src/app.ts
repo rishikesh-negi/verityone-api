@@ -14,10 +14,7 @@ const __dirname = path.dirname(import.meta.dirname);
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:8000",
-  "https://verityone.vercel.app",
-];
+const allowedOrigins = ["http://localhost:8000", "https://verityone.vercel.app"];
 
 app.enable("trust proxy");
 app.use(
@@ -76,12 +73,7 @@ app.use((req, _res, next) => {
 // Mount routers here:
 
 app.all(/.*/, (req, _res, next) => {
-  next(
-    new AppError(
-      `The requested resource ${req.originalUrl} does not exist`,
-      404,
-    ),
-  );
+  next(new AppError(`The requested resource ${req.originalUrl} does not exist`, 404));
 });
 
 app.use(globalErrorHandler);

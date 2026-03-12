@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "./config.env" }); // Path has to be relative to the root folder, not the index.ts module's path
 
-import app from "./app.js";
 import mongoose from "mongoose";
+import app from "./app.js";
 import { gracefulShutdown, shutdown } from "./utils/gracefulShutdown.js";
 
 process.on("uncaughtException", (err) => {
@@ -18,9 +18,7 @@ const DB = process.env["DATABASE"]?.replace(
 mongoose
   .connect(DB!)
   .then(
-    () =>
-      process.env["NODE_ENV"] === "development" &&
-      console.log("DB successfully connected"),
+    () => process.env["NODE_ENV"] === "development" && console.log("DB successfully connected"),
   );
 
 const PORT: number = +process.env["PORT"]! || 8000;
@@ -28,17 +26,11 @@ const PORT: number = +process.env["PORT"]! || 8000;
 export const server = app.listen(
   PORT,
   "0.0.0.0",
-  () =>
-    process.env["NODE_ENV"] === "development" &&
-    console.log(`App running on port ${PORT}`),
+  () => process.env["NODE_ENV"] === "development" && console.log(`App running on port ${PORT}`),
 );
 
 process.on("unhandledRejection", (err: Error) => {
-  gracefulShutdown(
-    err,
-    `🔴 Unhandled rejection encountered! Shutting down...`,
-    server,
-  );
+  gracefulShutdown(err, `🔴 Unhandled rejection encountered! Shutting down...`, server);
 });
 
 process.on("SIGTERM", shutdown);
