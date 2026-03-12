@@ -1,10 +1,4 @@
-import {
-  model,
-  Query,
-  Schema,
-  type HydratedDocument,
-  type InferSchemaType,
-} from "mongoose";
+import { model, Query, Schema, type HydratedDocument, type InferSchemaType } from "mongoose";
 import {
   createPaswordResetToken,
   hashPasswordPreSave,
@@ -25,10 +19,7 @@ const organizationSchema = new Schema(
     name: {
       type: String,
       trim: true,
-      required: [
-        true,
-        "Please provide the name of the organization to create an account",
-      ],
+      required: [true, "Please provide the name of the organization to create an account"],
       validate: {
         validator: organizationNameValidator,
         message:
@@ -47,8 +38,7 @@ const organizationSchema = new Schema(
       unique: [true, "This username is taken. Try a different one"],
       validate: {
         validator: usernameValidator,
-        message:
-          "Only letters, numbers, and userscores allowed (must contain at least one letter)",
+        message: "Only letters, numbers, and userscores allowed (must contain at least one letter)",
       },
     },
     email: {
@@ -128,33 +118,23 @@ const organizationSchema = new Schema(
 organizationSchema.pre("save", hashPasswordPreSave);
 organizationSchema.pre("save", setPasswordChangeTimestampPreSave);
 
-organizationSchema.pre(
-  /^find/,
-  async function (this: Query<unknown, IOrganization>) {
-    if (this.getOptions()["includeInactive"]) return;
-    this.where({ active: { $ne: false } });
-  },
-);
+organizationSchema.pre(/^find/, async function (this: Query<unknown, IOrganization>) {
+  if (this.getOptions()["includeInactive"]) return;
+  this.where({ active: { $ne: false } });
+});
 
-organizationSchema.pre(
-  /^find/,
-  async function (this: Query<unknown, IOrganization>) {
-    if (this.getOptions()["includeUnverified"]) return;
-    this.where({ emailIsVerified: { $ne: false } });
-  },
-);
+organizationSchema.pre(/^find/, async function (this: Query<unknown, IOrganization>) {
+  if (this.getOptions()["includeUnverified"]) return;
+  this.where({ emailIsVerified: { $ne: false } });
+});
 
 organizationSchema.methods["matchPasswords"] = matchPasswords;
 organizationSchema.methods["passwordChangedAfter"] = passwordChangedAfter;
-organizationSchema.methods["createPasswordResetToken"] =
-  createPaswordResetToken;
+organizationSchema.methods["createPasswordResetToken"] = createPaswordResetToken;
 
-type Organization = InferSchemaType<typeof organizationSchema>;
-export type IOrganization = Organization &
-  PasswordManagementSchemaMethods<Organization>;
+export type IOrganizationSchema = InferSchemaType<typeof organizationSchema>;
+export type IOrganization = IOrganizationSchema &
+  PasswordManagementSchemaMethods<IOrganizationSchema>;
 export type OrganizationDocument = HydratedDocument<IOrganization>;
 
-export const Organization = model<IOrganization>(
-  "Organization",
-  organizationSchema,
-);
+export const Organization = model<IOrganization>("Organization", organizationSchema);

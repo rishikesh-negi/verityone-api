@@ -1,10 +1,4 @@
-import {
-  Query,
-  Schema,
-  model,
-  type HydratedDocument,
-  type InferSchemaType,
-} from "mongoose";
+import { Query, Schema, model, type HydratedDocument, type InferSchemaType } from "mongoose";
 import {
   createPaswordResetToken,
   hashPasswordPreSave,
@@ -59,8 +53,7 @@ const employeeSchema = new Schema(
       maxlength: [25, "Username length cannot exceed 25 characters"],
       validate: {
         validator: usernameValidator,
-        message:
-          "Only letters, numbers, and underscores allowed. Must contain at least one letter",
+        message: "Only letters, numbers, and underscores allowed. Must contain at least one letter",
       },
     },
     email: {
@@ -127,8 +120,8 @@ employeeSchema.methods["matchPasswords"] = matchPasswords;
 employeeSchema.methods["passwordChangedAfter"] = passwordChangedAfter;
 employeeSchema.methods["createPasswordResetToken"] = createPaswordResetToken;
 
-type Employee = InferSchemaType<typeof employeeSchema>;
-export type IEmployee = Employee & PasswordManagementSchemaMethods<Employee>;
+export type IEmployeeSchema = InferSchemaType<typeof employeeSchema>;
+export type IEmployee = IEmployeeSchema & PasswordManagementSchemaMethods<IEmployeeSchema>;
 export type EmployeeDocument = HydratedDocument<IEmployee>;
 
 export const Employee = model<IEmployee>("Employee", employeeSchema);
