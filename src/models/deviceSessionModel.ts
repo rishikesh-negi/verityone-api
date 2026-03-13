@@ -1,4 +1,5 @@
 import { model, Schema, type InferSchemaType } from "mongoose";
+import { DEVICE_SESSION_VALIDITY_IN_SECONDS } from "../utils/constants.js";
 
 const deviceSessionSchema = new Schema(
   {
@@ -18,9 +19,10 @@ const deviceSessionSchema = new Schema(
     },
     userAgent: { type: String, default: null },
     ipAddress: { type: String, default: null },
-    expiresAt: {
+    createdAt: {
       type: Date,
-      required: [true, "Please specify the expiry time of the refresh token"],
+      expires: DEVICE_SESSION_VALIDITY_IN_SECONDS,
+      default: Date.now(),
     },
   },
   { timestamps: true },
