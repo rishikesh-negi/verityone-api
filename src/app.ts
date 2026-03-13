@@ -8,7 +8,7 @@ import morgan from "morgan";
 import path from "path";
 import { AppError } from "./errors/AppError.js";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
-import { sanitizeRequest } from "./utils/sanitizeData.js";
+import { sanitizeRequest } from "./middleware/sanitizeData.js";
 
 const __dirname = path.dirname(import.meta.dirname);
 
