@@ -19,9 +19,7 @@ function sanitizeValue(value: unknown): unknown {
     for (const key in value as Record<string, unknown>) {
       const cleanKey = key.replace(/[$.]/g, "").trim();
       if (cleanKey.length === 0) continue;
-      sanitized[cleanKey] = sanitizeValue(
-        (value as Record<string, unknown>)[key],
-      );
+      sanitized[cleanKey] = sanitizeValue((value as Record<string, unknown>)[key]);
     }
 
     return sanitized;
@@ -30,11 +28,7 @@ function sanitizeValue(value: unknown): unknown {
   return value;
 }
 
-export function sanitizeRequest(
-  req: Request<unknown>,
-  _res: Response,
-  next: NextFunction,
-) {
+export function sanitizeRequest(req: Request<unknown>, _res: Response, next: NextFunction) {
   if (req.body) req.body = sanitizeValue(req.body);
   if (req.query) req.query = sanitizeValue(req.query) as ParsedUrlQuery;
   if (req.params) req.params = sanitizeValue(req.params);
