@@ -10,7 +10,7 @@ const REFRESH_JWT_SECRET: string = process.env["REFREST_JWT_SECRET"]!;
 const REFRESH_JWT_EXPIRES_IN: string = process.env["REFRESH_JWT_EXPIRES_IN"]!;
 const ACCESS_JWT_EXPIRES_IN: string = process.env["ACCESS_JWT_EXPIRES_IN"]!;
 
-export function signAuthJWT(payload: object, tokenType: "access" | "refresh") {
+export function signAuthJWT(payload: AuthJWTPayload, tokenType: "access" | "refresh") {
   const jwtSecret: Secret = tokenType === "access" ? ACCESS_JWT_SECRET : REFRESH_JWT_SECRET;
 
   const expiresIn: ms.StringValue = (
