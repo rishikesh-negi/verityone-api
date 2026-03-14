@@ -43,8 +43,7 @@ if (process.env["NODE_ENV"] === "development") app.use(morgan("dev"));
 const limiter = rateLimit({
   limit: 120,
   windowMs: 60 * 60 * 1000,
-  message:
-    "Too many successive requests detected in a short span of time from your IP address. Pleaset try again after some time.",
+  message: "You have been rate limited. Pleaset try again after some time.",
 });
 app.use("/api", limiter);
 app.use(express.json({ limit: "100kb" }));
@@ -61,7 +60,7 @@ app.use(sanitizeRequest);
 app.disable("x-powered-by");
 app.use(
   hpp({
-    // TBD - Add all valid http parameter names to the whitelist:
+    // TBD - Add all valid http parameter identifiers of the API to the whitelist:
     whitelist: [],
   }),
 );
