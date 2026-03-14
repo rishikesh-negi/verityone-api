@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 
 export const sendNoAccessTokenResponse = (res: Response) =>
   res.status(400).json({
@@ -11,7 +11,7 @@ export const sendInvalidTokenResponse = (res: Response) =>
   res.status(401).json({
     status: "fail",
     reason: "unprocessable-token",
-    message: "Unauthorized Access: Invalid access token",
+    message: "Unauthorized Access: Invalid token",
   });
 
 export const sendAccessTokenExpiredResponse = (res: Response) =>
@@ -21,11 +21,11 @@ export const sendAccessTokenExpiredResponse = (res: Response) =>
     message: "Unauthorized Access: Access token expired",
   });
 
-export const sendRefreshTokenExpiredResponse = (res: Response) =>
+export const sendSessionExpiredResponse = (res: Response) =>
   res.status(401).json({
     status: "fail",
-    reason: "refresh-token-expired",
-    message: "Login Required: Refresh token expired",
+    reason: "session-expired",
+    message: "Session expired. Please log in again",
   });
 
 export const sendUserNotFoundResponse = (res: Response) =>
@@ -61,4 +61,18 @@ export const sendSessionCompromisedResponse = (res: Response) =>
     status: "fail",
     reason: "session-compromised",
     message: "Session compromised. Logged out of all devices",
+  });
+
+export const sendInvalidCredentialsResponse = (res: Response) =>
+  res.status(401).json({
+    status: "fail",
+    reason: "invalid-credentials",
+    message: "Login Failed: Invalid credentials",
+  });
+
+export const triggerRefreshJWTCookieRemoval = (req: Request, res: Response) =>
+  res.clearCookie("refresh_token", {
+    httpOnly: true,
+    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+    sameSite: "strict",
   });
