@@ -16,7 +16,7 @@ export type PasswordManagementSchemaMethods<T extends PasswordManagementProperti
 
   matchPasswords(candidatePassword: string, userPassword: string): Promise<boolean>;
 
-  passwordChangedAfter(this: HydratedDocument<T>, JWTTimestamp: number): boolean;
+  changedPasswordAfter(this: HydratedDocument<T>, JWTTimestamp: number): boolean;
 
   createPaswordResetToken(this: HydratedDocument<T>): string;
 };
@@ -43,13 +43,13 @@ export async function matchPasswords(
   return await bcrypt.compare(candidatePassword, userPassword);
 }
 
-export function passwordChangedAfter<T extends PasswordManagementProperties>(
+export function changedPasswordAfter<T extends PasswordManagementProperties>(
   this: HydratedDocument<T>,
-  JWTTimestamp: number,
+  jwtTimestamp: number,
 ): boolean {
   if (this.passwordChangedAt) {
     const passwordChangeTimestamp = Math.floor(this.passwordChangedAt.getTime() / 1000);
-    return JWTTimestamp < passwordChangeTimestamp;
+    return jwtTimestamp < passwordChangeTimestamp;
   }
 
   return false;
