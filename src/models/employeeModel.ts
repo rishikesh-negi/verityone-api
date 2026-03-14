@@ -1,9 +1,9 @@
 import { Query, Schema, model, type HydratedDocument, type InferSchemaType } from "mongoose";
 import {
+  changedPasswordAfter,
   createPaswordResetToken,
   hashPasswordPreSave,
   matchPasswords,
-  passwordChangedAfter,
   setPasswordChangeTimestampPreSave,
   type PasswordManagementSchemaMethods,
 } from "../middleware/passwordManagementMiddleware.js";
@@ -117,7 +117,7 @@ employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
 });
 
 employeeSchema.methods["matchPasswords"] = matchPasswords;
-employeeSchema.methods["passwordChangedAfter"] = passwordChangedAfter;
+employeeSchema.methods["changedPasswordAfter"] = changedPasswordAfter;
 employeeSchema.methods["createPasswordResetToken"] = createPaswordResetToken;
 
 export type IEmployeeSchema = InferSchemaType<typeof employeeSchema>;
