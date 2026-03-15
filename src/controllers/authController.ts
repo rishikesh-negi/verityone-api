@@ -1,31 +1,34 @@
 import mongoose from "mongoose";
 
-import { isAfter } from "date-fns";
-import { AppError } from "../errors/AppError.js";
+import {
+  AccessTokenExpiredError,
+  InvalidCredentialsError,
+  InvalidSessionError,
+  InvalidSignupDataError,
+  InvalidTokenError,
+  NoAccessTokenError,
+  PasswordChangedReloginError,
+  UnverifiedEmailError,
+  UserNotFoundError,
+  VerificationWindowExpiredError,
+} from "../errors/AppError.js";
 import { DeviceSession } from "../models/deviceSessionModel.js";
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
 import { Organization, type OrganizationDocument } from "../models/organizationModel.js";
 import type { AuthJWTPayload } from "../types/types.js";
 import { authenticateUser } from "../utils/authenticateUser.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
+import { REFRESH_JWT_COOKIE_NAME } from "../utils/constants.js";
 import { verifyAuthJWT } from "../utils/jwt.js";
-import {
-  sendAccessTokenExpiredResponse,
-  sendInvalidCredentialsResponse,
-  sendInvalidTokenResponse,
-  sendNoAccessTokenResponse,
-  sendReloginAfterPasswordChangeResponse,
-  sendUnverifiedEmailResponse,
-  sendUserNotFoundResponse,
-  sendVerificationWindowExpiredResponse,
-} from "../utils/userAuthorizationResponses.js";
-import { validateRefreshToken } from "../utils/validateRefreshToken.js";
+import { triggerRefreshJWTCookieRemoval } from "../utils/userAuthorizationResponses.js";
+import { validateSession } from "../utils/validateSession.js";
+import crypto from "crypto";
 
 export const signup = catchAsyncError(async (req, res, next) => {
   const accountType =
     "firstName" in req.body ? "Employee" : "name" in req.body ? "Organization" : null;
 
-  if (!accountType) return next(new AppError("Sign-Up Failed: Invalid data received", 400));
+  if (!accountType) return next(new InvalidSignupDataError());
   const newUser = (await mongoose.model(accountType).create(req.body)) as
     | EmployeeDocument
     | OrganizationDocument;
@@ -35,13 +38,16 @@ export const signup = catchAsyncError(async (req, res, next) => {
 });
 
 export const login = catchAsyncError(async function (req, res, next) {
-  const refreshToken = req.cookies["refresh_token"];
+  const refreshToken = req.cookies[REFRESH_JWT_COOKIE_NAME];
 
   if (refreshToken) {
-    const refreshTokenIsValid = await validateRefreshToken(req, res, refreshToken);
-    if (!refreshTokenIsValid) return;
+    const sessionIsValid = await validateSession(refreshToken);
+    if (!sessionIsValid) {
+      triggerRefreshJWTCookieRemoval(req, res);
+      return next(new InvalidSessionError());
+    }
 
-    if (refreshTokenIsValid) {
+    if (sessionIsValid) {
       const { id, accountType } = await verifyAuthJWT(refreshToken, "refresh");
       const UserModel = mongoose.model(accountType);
       const userId = new mongoose.Types.ObjectId(id);
@@ -54,7 +60,7 @@ export const login = catchAsyncError(async function (req, res, next) {
   }
 
   const { email, password } = req.body;
-  if (!email || !password) return next(new AppError("Invalid credentials", 400));
+  if (!email || !password) return next(new InvalidCredentialsError());
 
   const user = (
     await Promise.allSettled([
@@ -64,7 +70,7 @@ export const login = catchAsyncError(async function (req, res, next) {
   ).filter((result) => result.status === "fulfilled")?.[0]?.value;
 
   const passwordsMatched = await user?.matchPasswords(password, user?.password || "");
-  if (!user || !passwordsMatched) return sendInvalidCredentialsResponse(res);
+  if (!user || !passwordsMatched) return next(new InvalidCredentialsError());
 
   const accountType = "firstName" in user ? "Employee" : "Organization";
   const jwtPayload: AuthJWTPayload = { id: user.id, accountType };
@@ -75,28 +81,60 @@ export const protect = catchAsyncError(async function (req, res, next) {
   const accessToken = req.headers.authorization?.startsWith("Bearer ")
     ? req.headers.authorization.split(" ")[1]
     : null;
+  if (!accessToken) return next(new NoAccessTokenError());
 
-  if (!accessToken) return sendNoAccessTokenResponse(res);
+  const { id, accountType, ...decoded } = await verifyAuthJWT(accessToken, "access");
+  if (
+    !id ||
+    !accountType ||
+    !decoded.iat ||
+    !decoded.exp ||
+    (accountType !== "Employee" && accountType !== "Organization")
+  )
+    return next(new InvalidTokenError());
 
-  const decoded = await verifyAuthJWT(accessToken, "access");
-  if (!decoded || !decoded.iat || !decoded.exp) return sendInvalidTokenResponse(res);
-  if (decoded.exp * 1000 < Date.now()) return sendAccessTokenExpiredResponse(res);
+  if (Date.now() > decoded.exp * 1000) return next(new AccessTokenExpiredError());
 
-  const userId = new mongoose.Types.ObjectId(decoded.id);
-  const UserModel = mongoose.model(decoded.accountType);
+  const userId = new mongoose.Types.ObjectId(id);
+  const UserModel = mongoose.model(accountType);
   const sessionUser = (await UserModel.findById(userId)) as EmployeeDocument | OrganizationDocument;
 
-  if (!sessionUser) return sendUserNotFoundResponse(res);
-  if (!sessionUser.emailIsVerified && isAfter(new Date(), sessionUser.emailVerificationExpires!)) {
+  if (!sessionUser) return next(new UserNotFoundError());
+  if (
+    !sessionUser.emailIsVerified &&
+    Date.now() > sessionUser.emailVerificationExpires!.getTime()
+  ) {
     await UserModel.deleteOne({ _id: userId });
     await DeviceSession.deleteMany({ userId });
-    return sendVerificationWindowExpiredResponse(res);
+    return next(new VerificationWindowExpiredError());
   }
 
-  if (!sessionUser.emailIsVerified) return sendUnverifiedEmailResponse(res);
+  if (!sessionUser.emailIsVerified) return next(new UnverifiedEmailError());
 
   if ((sessionUser as EmployeeDocument).changedPasswordAfter(decoded.iat))
-    return sendReloginAfterPasswordChangeResponse(res);
+    return next(new PasswordChangedReloginError());
+
+  req.user = sessionUser;
+  return next();
+});
+
+export const restrictToVerified = catchAsyncError(async function (req, _res, next) {
+  if (!req.user) return next(new UserNotFoundError());
+  if (!req.user.emailIsVerified) return next(new UnverifiedEmailError());
 
   return next();
+});
+
+export const logout = catchAsyncError(async function (req, res, next) {
+  const refreshToken = req.cookies[REFRESH_JWT_COOKIE_NAME];
+  if (!refreshToken) return res.sendStatus(204);
+
+  const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
+  const { id } = await verifyAuthJWT(refreshToken, "refresh");
+  const userId = new mongoose.Types.ObjectId(id);
+
+  await DeviceSession.deleteOne({ userId, tokenHash });
+
+  triggerRefreshJWTCookieRemoval(req, res);
+  res.sendStatus(204);
 });
