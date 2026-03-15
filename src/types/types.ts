@@ -1,11 +1,15 @@
 import type { NextFunction, Request, Response } from "express";
-import type { HydratedDocument } from "mongoose";
-import type { IEmployee } from "../models/employeeModel.js";
-import type { IOrganization } from "../models/organizationModel.js";
 import type { JwtPayload } from "jsonwebtoken";
+import type { HydratedDocument } from "mongoose";
+import type { EmployeeDocument, IEmployee } from "../models/employeeModel.js";
+import type { IOrganization, OrganizationDocument } from "../models/organizationModel.js";
+
+export interface RequestWithUser extends Request {
+  user?: EmployeeDocument | OrganizationDocument;
+}
 
 export type Controller = (
-  req: Request,
+  req: RequestWithUser,
   res: Response,
   next: NextFunction,
 ) => Promise<unknown | void>;
