@@ -1,12 +1,13 @@
 import type { Request, Response } from "express";
-import type { AuthJWTPayload } from "../types/types.js";
-import { createAccessToken, createRefreshToken } from "./jwt.js";
+import mongoose from "mongoose";
+import { DeviceSession } from "../models/deviceSessionModel.js";
 import type { EmployeeDocument } from "../models/employeeModel.js";
 import type { OrganizationDocument } from "../models/organizationModel.js";
-import { generateToken } from "./generateToken.js";
+import type { AuthJWTPayload } from "../types/types.js";
+import { REFRESH_JWT_COOKIE_NAME } from "./constants.js";
 import Email from "./email.js";
-import { DeviceSession } from "../models/deviceSessionModel.js";
-import mongoose from "mongoose";
+import { generateToken } from "./generateToken.js";
+import { createAccessToken, createRefreshToken } from "./jwt.js";
 
 export type AuthCreatorFunctionParams = {
   req: Request;
@@ -24,6 +25,7 @@ export async function authenticateUser(authParams: AuthCreatorFunctionParams) {
   const { accessToken, accessTokenExpiry } = createAccessToken(jwtPayload);
   const userAgent = req.headers["user-agent"];
   const ipAddress = req.ip;
+  const resStatusCode = authAction === "login" ? 200 : 201;
 
   await DeviceSession.create({
     userId: new mongoose.Types.ObjectId(user.id),
@@ -33,14 +35,14 @@ export async function authenticateUser(authParams: AuthCreatorFunctionParams) {
     ...(ipAddress ? { ipAddress } : {}),
   });
 
-  res.cookie("refresh_token", refreshToken, {
+  res.cookie(REFRESH_JWT_COOKIE_NAME, refreshToken, {
     expires: refreshTokenExpiry,
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
     httpOnly: true,
     sameSite: "strict",
   });
 
-  res.status(201).json({
+  res.status(resStatusCode).json({
     message: "success",
     accessToken,
     tokenExpiresAt: accessTokenExpiry,
