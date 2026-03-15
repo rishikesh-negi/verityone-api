@@ -9,11 +9,11 @@ export const transformError = (err: Error): Error => {
 
   if (err instanceof mongoose.Error.ValidationError) {
     const messages = Object.values(err.errors).map((er: Error) => er.message);
-    return new BadRequestError(`Invalid input data. ${messages.join(", ")}`);
+    return new BadRequestError(`Invalid input data. ${messages.join(", \n")}`);
   }
 
   if (err instanceof mongoose.Error.DocumentNotFoundError)
-    return new NotFoundError("No such document found");
+    return new NotFoundError("No document matching that query was found");
 
   // Common MongoDB errors:
   if (err instanceof MongoServerError) {
