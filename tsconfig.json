@@ -9,6 +9,7 @@
     "outDir": "dist",
 
     "strict": true,
+    "noEmitOnError": true,
     "noUncheckedIndexedAccess": true,
     "noPropertyAccessFromIndexSignature": true,
     "allowUnreachableCode": false,
