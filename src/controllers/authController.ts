@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import crypto from "crypto";
 import {
   AccessTokenExpiredError,
   InvalidCredentialsError,
@@ -22,7 +23,6 @@ import { REFRESH_JWT_COOKIE_NAME } from "../utils/constants.js";
 import { verifyAuthJWT } from "../utils/jwt.js";
 import { triggerRefreshJWTCookieRemoval } from "../utils/userAuthorizationResponses.js";
 import { validateSession } from "../utils/validateSession.js";
-import crypto from "crypto";
 
 export const signup = catchAsyncError(async (req, res, next) => {
   const accountType =
@@ -125,7 +125,7 @@ export const restrictToVerified = catchAsyncError(async function (req, _res, nex
   return next();
 });
 
-export const logout = catchAsyncError(async function (req, res, next) {
+export const logout = catchAsyncError(async function (req, res) {
   const refreshToken = req.cookies[REFRESH_JWT_COOKIE_NAME];
   if (!refreshToken) return res.sendStatus(204);
 
@@ -136,5 +136,5 @@ export const logout = catchAsyncError(async function (req, res, next) {
   await DeviceSession.deleteOne({ userId, tokenHash });
 
   triggerRefreshJWTCookieRemoval(req, res);
-  res.sendStatus(204);
+  return res.sendStatus(204);
 });
