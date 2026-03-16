@@ -23,6 +23,8 @@ const deviceSessionSchema = new Schema(
       type: Date,
       expires: DEVICE_SESSION_VALIDITY_IN_SECONDS,
       default: Date.now(),
+      select: false,
+      immutable: true,
     },
   },
   { timestamps: true },
