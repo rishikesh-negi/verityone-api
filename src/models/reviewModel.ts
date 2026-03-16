@@ -1,9 +1,7 @@
 import { model, Schema, type InferSchemaType } from "mongoose";
 
 const reviewSchema = new Schema({
-  anonymousId: {
-    type: Schema.Types.UUID,
-  },
+  anonymousId: { type: Schema.Types.UUID, required: [true, "An anonymous review ID is required"] },
   organization: {
     type: Schema.ObjectId,
     ref: "Organization",
@@ -22,8 +20,10 @@ const reviewSchema = new Schema({
     maxLength: [1000, "Review cannot exceed 1000 characters"],
   },
   biased: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now(), select: false },
+  createdAt: { type: Date, default: Date.now(), select: false, immutable: true },
 });
+
+reviewSchema.index({ organization: 1, anonymousId: 1 }, { unique: true });
 
 export type IReview = InferSchemaType<typeof reviewSchema>;
 
