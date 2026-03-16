@@ -23,7 +23,7 @@ const organizationSchema = new Schema(
       validate: {
         validator: organizationNameValidator,
         message:
-          "Organization name can contain: letters (at least one required), numbers, apostrophes, hyphens, and periods (consecutive special characters not allowed)",
+          "Organization name can contain: letters (at least one required), numbers, apostrophes, hyphens, and periods (consecutive non-alphanumeric characters not allowed)",
       },
       minLength: [2, "The name must contain at least 2 characters"],
       maxLength: [50, "The name cannot exceed 50 characters"],
@@ -47,29 +47,15 @@ const organizationSchema = new Schema(
       required: [true, "A valid email address is required"],
       unique: [true, "An account with this email address already exists"],
       lowercase: true,
-      validate: {
-        validator: emailAddressFormatValidator,
-        message: "Invalid email address format",
-      },
+      validate: { validator: emailAddressFormatValidator, message: "Invalid email address format" },
       maxLength: [50, "The email address cannot exceed 50 characters"],
       message: "Please provide a valid email address",
     },
     emailVerificationToken: String,
     emailVerificationExpires: Date,
-    emailIsVerified: {
-      type: Boolean,
-      default: false,
-    },
-    postalCode: {
-      type: String,
-      trim: true,
-      required: [true, "Postal code is required"],
-    },
-    city: {
-      type: String,
-      trim: true,
-      required: [true, "City name is required"],
-    },
+    emailIsVerified: { type: Boolean, default: false },
+    postalCode: { type: String, trim: true, required: [true, "Postal code is required"] },
+    city: { type: String, trim: true, required: [true, "City name is required"] },
     country: {
       type: String,
       trim: true,
@@ -96,17 +82,8 @@ const organizationSchema = new Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
-    createdAt: {
-      type: Date,
-      default: new Date(Date.now()),
-      select: false,
-      immutable: true,
-    },
-    active: {
-      type: Boolean,
-      default: true,
-      select: false,
-    },
+    createdAt: { type: Date, default: new Date(Date.now()), select: false, immutable: true },
+    active: { type: Boolean, default: true, select: false },
   },
   {
     toJSON: { virtuals: true },
