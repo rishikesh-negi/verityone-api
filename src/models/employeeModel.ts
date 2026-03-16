@@ -22,10 +22,7 @@ const employeeSchema = new Schema(
       trim: true,
       minlength: [2, "Invalid first name"],
       maxlength: [40, "First name must not exceed 40 characters"],
-      validate: {
-        validator: partialNameValidator,
-        message: "Please enter a valid first name",
-      },
+      validate: { validator: partialNameValidator, message: "Please enter a valid first name" },
     },
     lastName: {
       type: String,
@@ -33,10 +30,7 @@ const employeeSchema = new Schema(
       trim: true,
       minlength: [2, "Invalid last name"],
       maxlength: [40, "Last name must not exceed 40 characters"],
-      validate: {
-        validator: partialNameValidator,
-        message: "Please enter a valid last name",
-      },
+      validate: { validator: partialNameValidator, message: "Please enter a valid last name" },
     },
     fullName: {
       type: String,
@@ -62,19 +56,13 @@ const employeeSchema = new Schema(
       required: [true, "A valid email address is required"],
       unique: [true, "An account with this email address already exists"],
       lowercase: true,
-      validate: {
-        validator: emailAddressFormatValidator,
-        message: "Invalid email address format",
-      },
+      validate: { validator: emailAddressFormatValidator, message: "Invalid email address format" },
       maxLength: [50, "The email address cannot exceed 50 characters"],
       message: "Please provide a valid email address",
     },
     emailVerificationToken: String,
     emailVerificationExpires: Date,
-    emailIsVerified: {
-      type: Boolean,
-      default: false,
-    },
+    emailIsVerified: { type: Boolean, default: false },
     password: {
       type: String,
       required: [true, "A valid password is required to secure your account"],
@@ -88,17 +76,8 @@ const employeeSchema = new Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
-    createdAt: {
-      type: Date,
-      default: new Date(Date.now()),
-      select: false,
-      immutable: true,
-    },
-    active: {
-      type: Boolean,
-      default: true,
-      select: false,
-    },
+    createdAt: { type: Date, default: new Date(Date.now()), select: false, immutable: true },
+    active: { type: Boolean, default: true, select: false },
   },
   { timestamps: true },
 );
