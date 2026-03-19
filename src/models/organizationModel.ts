@@ -1,4 +1,5 @@
 import { model, Query, Schema, type HydratedDocument, type InferSchemaType } from "mongoose";
+import slugify from "slugify";
 import {
   changedPasswordAfter,
   createPaswordResetToken,
@@ -94,6 +95,14 @@ const organizationSchema = new Schema(
 
 organizationSchema.pre("save", hashPasswordPreSave);
 organizationSchema.pre("save", setPasswordChangeTimestampPreSave);
+organizationSchema.pre("save", function () {
+  this.slug = slugify.default(this.name, {
+    lower: true,
+    trim: true,
+    strict: true,
+    remove: /[!@#$%^&*()=+;:'",<.>/|?`~]/g,
+  });
+});
 
 organizationSchema.pre(/^find/, async function (this: Query<unknown, IOrganization>) {
   if (this.getOptions()["includeInactive"]) return;
