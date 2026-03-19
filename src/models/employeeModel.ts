@@ -63,6 +63,11 @@ const employeeSchema = new Schema(
     emailVerificationToken: String,
     emailVerificationExpires: Date,
     emailIsVerified: { type: Boolean, default: false },
+    organization: {
+      type: Schema.ObjectId,
+      ref: "Organization",
+      default: null,
+    },
     password: {
       type: String,
       required: [true, "A valid password is required to secure your account"],
@@ -93,6 +98,13 @@ employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
 employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
   if (this.getOptions()["includeUnverified"]) return;
   this.where({ emailIsVerified: { $ne: false } });
+});
+
+employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
+  this.populate({
+    path: "organization",
+    select: "name slug postalCode city country ratingsAverage numRatings",
+  });
 });
 
 employeeSchema.methods["matchPasswords"] = matchPasswords;
