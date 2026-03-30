@@ -1,6 +1,6 @@
+import crypto from "crypto";
 import mongoose from "mongoose";
 
-import crypto from "crypto";
 import {
   AccessTokenExpiredError,
   InvalidCredentialsError,
@@ -74,7 +74,7 @@ export const login = catchAsyncError(async function (req, res, next) {
 
   const accountType = "firstName" in user ? "Employee" : "Organization";
   const jwtPayload: AuthJWTPayload = { id: user.id, accountType };
-  authenticateUser({ req, res, jwtPayload, user, authAction: "login" });
+  return await authenticateUser({ req, res, jwtPayload, user, authAction: "login" });
 });
 
 export const protect = catchAsyncError(async function (req, res, next) {
