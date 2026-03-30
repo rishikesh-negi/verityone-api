@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { REFRESH_JWT_COOKIE_NAME } from "./constants.js";
 
+/*
 export const sendNoAccessTokenResponse = (res: Response) =>
   res.status(400).json({
     status: "fail",
@@ -70,6 +71,7 @@ export const sendInvalidCredentialsResponse = (res: Response) =>
     reason: "invalid-credentials",
     message: "Login Failed: Invalid credentials",
   });
+*/
 
 export const triggerRefreshJWTCookieRemoval = (req: Request, res: Response) =>
   res.clearCookie(REFRESH_JWT_COOKIE_NAME, {
