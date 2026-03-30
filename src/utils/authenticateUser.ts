@@ -42,8 +42,25 @@ export async function authenticateUser(authParams: AuthCreatorFunctionParams) {
     sameSite: "strict",
   });
 
+  const userData: Record<string, unknown> = {};
+  const userObject: Record<string, unknown> = user.toObject();
+  for (const key in Object.keys(userObject)) {
+    if (
+      key === "password" ||
+      key === "emailVerificationToken" ||
+      key === "emailVerificationExpires" ||
+      key === "passwordChangedAt" ||
+      key === "passwordResetToken" ||
+      key === "passwordResetExpires" ||
+      key === "active"
+    )
+      continue;
+    userData[key] = userObject[key];
+  }
+
   res.status(resStatusCode).json({
     message: "success",
+    user: userData,
     accessToken,
     tokenExpiresAt: accessTokenExpiry,
   });
