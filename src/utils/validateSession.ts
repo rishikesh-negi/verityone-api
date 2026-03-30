@@ -37,7 +37,7 @@ export async function validateSession(refreshToken: string): Promise<boolean> {
     return false;
   }
 
-  // Type-casting "user" to EmployeeDocument to get rid of the TS compile-time error raised due to the unavoidable but safe mismatch between the context types of "user" and the .changedPasswordAfter() method:
+  // Type-casting "user" to EmployeeDocument to get rid of the TS compile-time error raised due to the unavoidable but safe mismatch between the context types of "user" and .changedPasswordAfter() method:
   if ((user as EmployeeDocument).changedPasswordAfter(decoded.iat)) {
     await DeviceSession.deleteMany({ userId });
     return false;
