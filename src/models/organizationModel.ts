@@ -37,6 +37,7 @@ const organizationSchema = new Schema(
       minLength: [3, "The username must contain at least 3 characters"],
       maxLength: [25, "The username cannot exceed 25 characters"],
       unique: [true, "This username is taken. Try a different one"],
+      index: true,
       validate: {
         validator: usernameValidator,
         message: "Only letters, numbers, and userscores allowed (must contain at least one letter)",
@@ -47,6 +48,7 @@ const organizationSchema = new Schema(
       trim: true,
       required: [true, "A valid email address is required"],
       unique: [true, "An account with this email address already exists"],
+      index: true,
       lowercase: true,
       validate: { validator: emailAddressFormatValidator, message: "Invalid email address format" },
       maxLength: [50, "The email address cannot exceed 50 characters"],
