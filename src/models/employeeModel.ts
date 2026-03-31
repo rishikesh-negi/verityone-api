@@ -43,6 +43,7 @@ const employeeSchema = new Schema(
       required: [true, "Username is required"],
       trim: true,
       unique: [true, "This username is taken. Try a different one"],
+      index: true,
       minlength: [3, "Username must have at least 3 characters"],
       maxlength: [25, "Username length cannot exceed 25 characters"],
       validate: {
@@ -55,8 +56,9 @@ const employeeSchema = new Schema(
       trim: true,
       required: [true, "A valid email address is required"],
       unique: [true, "An account with this email address already exists"],
+      index: true,
       lowercase: true,
-      validate: { validator: emailAddressFormatValidator, message: "Invalid email address format" },
+      validate: { validator: emailAddressFormatValidator, message: "Invalid email address" },
       maxLength: [50, "The email address cannot exceed 50 characters"],
       message: "Please provide a valid email address",
     },
