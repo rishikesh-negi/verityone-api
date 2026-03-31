@@ -41,6 +41,18 @@ export class InvalidSignupDataError extends AppError {
   }
 }
 
+export class EmailAlreadyExistsError extends AppError {
+  constructor(message = "An account with this email already exists") {
+    super(message, 409, "email-already-exists");
+  }
+}
+
+export class UsernameTakenError extends AppError {
+  constructor(message = "This username is already taken") {
+    super(message, 409, "username-taken");
+  }
+}
+
 export class InvalidCredentialsError extends AppError {
   constructor(message = "Login failed: Invalid credentials") {
     super(message, 401, "invalid-credentials");
@@ -86,6 +98,12 @@ export class VerificationWindowExpiredError extends AppError {
 export class UnverifiedEmailError extends AppError {
   constructor(message = "Please verify your email address first") {
     super(message, 401, "email-unverified");
+  }
+}
+
+export class InvalidEmailVerificationToken extends AppError {
+  constructor(message = "Invalid email verification token") {
+    super(message, 400, "invalid-email-verification-token");
   }
 }
 
