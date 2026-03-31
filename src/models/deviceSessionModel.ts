@@ -6,6 +6,7 @@ const deviceSessionSchema = new Schema(
     userId: {
       type: Schema.Types.ObjectId,
       required: [true, "The ID of the token recipient is required"],
+      index: true,
       refPath: "userType",
     },
     userType: {
