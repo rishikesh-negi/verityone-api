@@ -5,7 +5,7 @@ import type { EmployeeDocument } from "../models/employeeModel.js";
 import type { OrganizationDocument } from "../models/organizationModel.js";
 import { verifyAuthJWT } from "./jwt.js";
 
-export async function validateSession(refreshToken: string): Promise<boolean> {
+export async function checkSessionValidity(refreshToken: string): Promise<boolean> {
   const { id, accountType, ...decoded } = await verifyAuthJWT(refreshToken, "refresh");
   if (
     !id ||
