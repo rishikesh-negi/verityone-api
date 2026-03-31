@@ -1,7 +1,11 @@
 import { model, Schema, type InferSchemaType } from "mongoose";
 
 const reviewSchema = new Schema({
-  anonymousId: { type: Schema.Types.UUID, required: [true, "An anonymous review ID is required"] },
+  anonymousId: {
+    type: Schema.Types.UUID,
+    required: [true, "An anonymous review ID is required"],
+    ref: "UserIdentityVault",
+  },
   organization: {
     type: Schema.ObjectId,
     ref: "Organization",
