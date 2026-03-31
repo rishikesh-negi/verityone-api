@@ -14,6 +14,4 @@ export const passwordValidator = (password: string) =>
 
 // Organization name validator: Only letters, numbers, apostrophes, hyphens, and periods allowed. At least one letter mandatory. No consecutive special characters:
 export const organizationNameValidator = (orgName: string) =>
-  /^(?=.*[A-Za-z])[A-Za-z0-9](?:[A-Za-z0-9]|[.'-](?=[A-Za-z0-9]))*$/.test(
-    orgName,
-  );
+  /^(?=.*[A-Za-z])[A-Za-z0-9](?:[A-Za-z0-9]|[.'-](?=[A-Za-z0-9]))*$/.test(orgName);
