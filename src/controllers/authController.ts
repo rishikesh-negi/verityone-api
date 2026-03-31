@@ -3,13 +3,16 @@ import mongoose from "mongoose";
 
 import {
   AccessTokenExpiredError,
+  EmailAlreadyExistsError,
   InvalidCredentialsError,
+  InvalidEmailVerificationToken,
   InvalidSessionError,
   InvalidSignupDataError,
   InvalidTokenError,
   NoAccessTokenError,
   PasswordChangedReloginError,
   UnverifiedEmailError,
+  UsernameTakenError,
   UserNotFoundError,
   VerificationWindowExpiredError,
 } from "../errors/AppError.js";
@@ -22,16 +25,31 @@ import { catchAsyncError } from "../utils/catchAsyncError.js";
 import { REFRESH_JWT_COOKIE_NAME } from "../utils/constants.js";
 import { verifyAuthJWT } from "../utils/jwt.js";
 import { triggerRefreshJWTCookieRemoval } from "../utils/userAuthorizationResponses.js";
-import { validateSession } from "../utils/validateSession.js";
+import { checkSessionValidity } from "../utils/checkSessionValidity.js";
+import { UserAccountRegistry } from "../models/userAccountRegistryModel.js";
 
 export const signup = catchAsyncError(async (req, res, next) => {
   const accountType =
     "firstName" in req.body ? "Employee" : "name" in req.body ? "Organization" : null;
 
   if (!accountType) return next(new InvalidSignupDataError());
+
+  const emailAlreadyExists = await UserAccountRegistry.findOne({ email: req.body.email });
+  if (emailAlreadyExists) return next(new EmailAlreadyExistsError());
+  const usernameTaken = await UserAccountRegistry.findOne({ username: req.body.username });
+  if (usernameTaken) return next(new UsernameTakenError());
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  await UserAccountRegistry.create({
+    email: req.body.email,
+    username: req.body.username,
+    userType: accountType,
+  });
   const newUser = (await mongoose.model(accountType).create(req.body)) as
     | EmployeeDocument
     | OrganizationDocument;
+  await session.commitTransaction();
 
   const jwtPayload: AuthJWTPayload = { id: newUser.id, accountType };
   return authenticateUser({ req, res, jwtPayload, user: newUser, authAction: "signup" });
@@ -41,7 +59,7 @@ export const login = catchAsyncError(async function (req, res, next) {
   const refreshToken = req.cookies[REFRESH_JWT_COOKIE_NAME];
 
   if (refreshToken) {
-    const sessionIsValid = await validateSession(refreshToken);
+    const sessionIsValid = await checkSessionValidity(refreshToken);
     if (!sessionIsValid) {
       triggerRefreshJWTCookieRemoval(req, res);
       return next(new InvalidSessionError());
@@ -116,6 +134,11 @@ export const protect = catchAsyncError(async function (req, res, next) {
 
   req.user = sessionUser;
   return next();
+});
+
+export const verifyEmailAddress = catchAsyncError(async function (req, res, next) {
+  const { verificationToken } = req.params;
+  if (!verificationToken) return next(new InvalidEmailVerificationToken());
 });
 
 export const restrictToVerified = catchAsyncError(async function (req, _res, next) {
