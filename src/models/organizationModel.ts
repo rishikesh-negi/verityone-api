@@ -17,6 +17,7 @@ import {
 
 const organizationSchema = new Schema(
   {
+    userType: { type: String, default: "Organization", immutable: true },
     name: {
       type: String,
       trim: true,
@@ -104,6 +105,9 @@ organizationSchema.pre("save", function () {
     strict: true,
     remove: /[!@#$%^&*()=+;:'",<.>/|?`~]/g,
   });
+
+  if (this.userType === "Organization" || this.userType === undefined) return;
+  this.set("userType", "Organization");
 });
 
 organizationSchema.pre(/^find/, async function (this: Query<unknown, IOrganization>) {

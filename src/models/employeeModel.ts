@@ -16,6 +16,7 @@ import {
 
 const employeeSchema = new Schema(
   {
+    userType: { type: String, default: "Employee", immutable: true },
     firstName: {
       type: String,
       required: [true, "First name is required"],
@@ -91,6 +92,11 @@ const employeeSchema = new Schema(
 
 employeeSchema.pre("save", hashPasswordPreSave);
 employeeSchema.pre("save", setPasswordChangeTimestampPreSave);
+
+employeeSchema.pre("save", async function () {
+  if (this.userType === "Employee" || this.userType === undefined) return;
+  this.set("userType", "Employee");
+});
 
 employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
   if (this.getOptions()["includeInactive"]) return;
