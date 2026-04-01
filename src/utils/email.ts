@@ -38,19 +38,8 @@ export default class Email {
   readonly from: string;
   #userType: "employee" | "organization";
 
-  constructor(user: HydratedDocument<IEmployee | IOrganization>, url?: string) {
-    this.to = user?.email;
-    this.#userType = "firstName" in user ? "employee" : "organization";
-    this.name = "firstName" in user ? user.firstName : user.name;
-    if (url) this.url = url;
-    this.from = `Beatific Team <${process.env["EMAIL_FROM"]}>`;
-  }
-
-  newTransport() {
-    const transporter =
-      process.env["NODE_ENV"] === "production"
-        ? nodemailer.createTransport(transportOptions)
-        : nodemailer.createTransport(transportOptions);
+  static #newTransport() {
+    const transporter = nodemailer.createTransport(transportOptions);
 
     transporter.use(
       "compile",
@@ -69,15 +58,19 @@ export default class Email {
     return transporter;
   }
 
-  async send(
-    template: string,
-    subject: string,
-    data?: Record<string, unknown>,
-  ) {
+  constructor(user: HydratedDocument<IEmployee | IOrganization>, url?: string) {
+    this.to = user?.email;
+    this.#userType = "firstName" in user ? "employee" : "organization";
+    this.name = "firstName" in user ? user.firstName : user.name;
+    if (url) this.url = url;
+    this.from = `VerityOne Team <${process.env["EMAIL_FROM"]}>`;
+  }
+
+  async send(template: string, subject: string, data?: Record<string, unknown>) {
     const unstyledHtml = await renderEmailTemplate(template, data);
     const html = juice(unstyledHtml);
 
-    await this.newTransport().sendMail({
+    await Email.#newTransport().sendMail({
       from: this.from,
       to: this.to,
       subject,
@@ -89,9 +82,8 @@ export default class Email {
   }
 
   async sendWelcome() {
-    const subject = "Welcome to VerityOne";
-    const template =
-      this.#userType === "employee" ? "welcomeEmployee" : "welcomeOrganization";
+    const subject = "Welcome to VerityOne. Verify your email address.";
+    const template = this.#userType === "employee" ? "welcomeEmployee" : "welcomeOrganization";
 
     await this.send(template, subject, {
       subject,
