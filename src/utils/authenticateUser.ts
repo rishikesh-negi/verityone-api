@@ -68,7 +68,7 @@ export async function authenticateUser(authParams: AuthCreatorFunctionParams) {
   if (authAction === "signup") {
     const { token, hashedToken } = generateToken();
     user.emailVerificationToken = hashedToken;
-    user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    user.emailVerificationExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await user.save();
 
     const emailVerificationUrl = `${req.protocol}://${req.get("host")}/verify-email/${token}`;
