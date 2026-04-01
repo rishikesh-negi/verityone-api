@@ -31,7 +31,7 @@ export class AppError extends Error {
 
 export class NoAccessTokenError extends AppError {
   constructor(message = "Unauthorized Access: Authenticated users only") {
-    super(message, 400, "no-access-token");
+    super(message, 401, "no-access-token");
   }
 }
 
@@ -102,7 +102,7 @@ export class UnverifiedEmailError extends AppError {
 }
 
 export class InvalidEmailVerificationToken extends AppError {
-  constructor(message = "Invalid email verification token") {
+  constructor(message = "Invalid or expired email verification token. New signup required") {
     super(message, 400, "invalid-email-verification-token");
   }
 }
