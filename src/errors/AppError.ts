@@ -120,19 +120,19 @@ export class SessionCompromisedError extends AppError {
 }
 
 export class BadRequestError extends AppError {
-  constructor(message = "Bad Request") {
+  constructor(message = "Bad request") {
     super(message, 400);
   }
 }
 
 export class UnauthorizedAccessError extends AppError {
-  constructor(message = "Unauthorized Access") {
+  constructor(message = "Unauthorized access") {
     super(message, 401);
   }
 }
 
 export class ForbiddebAccessError extends AppError {
-  constructor(message = "Forbidden: Authorization Failed") {
+  constructor(message = "Forbidden: Authorization failed") {
     super(message, 403);
   }
 }
