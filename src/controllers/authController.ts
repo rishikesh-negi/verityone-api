@@ -41,14 +41,15 @@ export const signup = catchAsyncError(async (req, res, next) => {
 
   const session = await mongoose.startSession();
   session.startTransaction();
+  const newUser = (await mongoose.model(accountType).create(req.body)) as
+    | EmployeeDocument
+    | OrganizationDocument;
   await UserAccountRegistry.create({
+    userId: newUser._id,
     email: req.body.email,
     username: req.body.username,
     userType: accountType,
   });
-  const newUser = (await mongoose.model(accountType).create(req.body)) as
-    | EmployeeDocument
-    | OrganizationDocument;
   await session.commitTransaction();
 
   const jwtPayload: AuthJWTPayload = { id: newUser.id, accountType };
