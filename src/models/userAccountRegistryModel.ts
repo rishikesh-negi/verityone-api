@@ -2,6 +2,12 @@ import mongoose, { Schema, type InferSchemaType } from "mongoose";
 import { emailAddressFormatValidator, usernameValidator } from "../utils/stringValidators.js";
 
 const userAccountRegistrySchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    refPath: "userType",
+    required: [true, "Account registry must belong to a user account"],
+    index: true,
+  },
   email: {
     type: String,
     required: true,
@@ -14,7 +20,7 @@ const userAccountRegistrySchema = new Schema({
     type: String,
     required: true,
     immutable: true,
-    unique: true,
+    unique: [true, "This username is taken. Try a different one"],
     index: true,
     validate: {
       validator: usernameValidator,
