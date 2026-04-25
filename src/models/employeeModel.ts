@@ -16,7 +16,7 @@ import {
 
 const employeeSchema = new Schema(
   {
-    userType: { type: String, default: "Employee", immutable: true },
+    userType: { type: String, default: "Employee", enum: ["Employee"], immutable: true },
     firstName: {
       type: String,
       required: [true, "First name is required"],
@@ -60,6 +60,7 @@ const employeeSchema = new Schema(
       index: true,
       lowercase: true,
       validate: { validator: emailAddressFormatValidator, message: "Invalid email address" },
+      minLength: [6, "Please provide a valid email address"],
       maxLength: [50, "The email address cannot exceed 50 characters"],
       message: "Please provide a valid email address",
     },
@@ -67,7 +68,7 @@ const employeeSchema = new Schema(
     emailVerificationExpires: Date,
     emailIsVerified: { type: Boolean, default: false },
     organization: {
-      type: Schema.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Organization",
       default: null,
     },

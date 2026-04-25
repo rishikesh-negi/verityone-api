@@ -12,12 +12,13 @@ import {
   emailAddressFormatValidator,
   organizationNameValidator,
   passwordValidator,
+  postalCodeValidator,
   usernameValidator,
 } from "../utils/stringValidators.js";
 
 const organizationSchema = new Schema(
   {
-    userType: { type: String, default: "Organization", immutable: true },
+    userType: { type: String, default: "Organization", enum: ["Organization"], immutable: true },
     name: {
       type: String,
       trim: true,
@@ -58,14 +59,28 @@ const organizationSchema = new Schema(
     emailVerificationToken: String,
     emailVerificationExpires: Date,
     emailIsVerified: { type: Boolean, default: false },
-    postalCode: { type: String, trim: true, required: [true, "Postal code is required"] },
-    city: { type: String, trim: true, required: [true, "City name is required"] },
+    postalCode: {
+      type: String,
+      trim: true,
+      required: [true, "Postal code is required"],
+      maxLength: [20, "Postal code cannot exceed 20 characters"],
+      validate: {
+        validator: postalCodeValidator,
+        message: "Please enter a valid postal code",
+      },
+    },
+    city: {
+      type: String,
+      trim: true,
+      required: [true, "City name is required"],
+      maxLength: [100, "A city name cannot exceed 100 characters"],
+    },
     country: {
       type: String,
       trim: true,
       required: [true, "Country name is required"],
       minLength: [4, "Invalid country name"],
-      maxLength: [32, "Only valid common names of countries allowed"],
+      maxLength: [32, "Only commonly used country names are allowed"],
     },
     ratingsAverage: {
       type: Number,
