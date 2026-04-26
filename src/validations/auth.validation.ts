@@ -1,22 +1,22 @@
 import z from "zod";
 
-export const EmployeeSignupSchema = z.object({
+export const employeeSignupSchema = z.object({
   firstName: z
     .string()
     .trim()
-    .min(2, { error: "Please enter a valid first name" })
-    .max(40, { error: "A name cannot exceed 40 characters" })
-    .regex(/^[A-Za-z]+$/, { error: "Please enter a valid first name" }),
+    .min(2, { error: "Too short. Minimum 2 letters expected" })
+    .max(40, { error: "First name cannot exceed 40 characters" })
+    .regex(/^[A-Za-z]+$/, { error: "Please enter a valid first name (only letters)" }),
   lastName: z
     .string()
     .trim()
-    .min(2, { error: "Please enter a valid last name" })
-    .max(40, { error: "A name cannot exceed 40 characters" })
-    .regex(/^[A-Za-z]+$/, { error: "Please enter a valid last name" }),
+    .min(2, { error: "Too short. Minimum 2 letters expected" })
+    .max(40, { error: "Last name cannot exceed 40 characters" })
+    .regex(/^[A-Za-z]+$/, { error: "Please enter a valid last name (only letters)" }),
   username: z
     .string()
     .trim()
-    .min(3, { error: "Username must have at least 3 characters" })
+    .min(3, { error: "Too short. Minimum 3 characters expected" })
     .max(25, { error: "Username cannot exceed 25 characters" })
     .regex(/^(?=.*[a-zA-Z])[a-zA-Z0-9_]{3,}$/, {
       error: "Only letters, numbers, and underscores allowed. Must contain at least one letter",
@@ -29,34 +29,37 @@ export const EmployeeSignupSchema = z.object({
     .max(50, { error: "Email address cannot exceed 50 characters" }),
   password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/, {
     error:
-      "Password must contain minimum 8 characters, uppercase and lowercase letters, a number, and a special character",
+      "Password must contain: minimum 8 characters, uppercase & lowercase letters, number, special character/s",
   }),
 });
+export type EmployeeSignupData = z.infer<typeof employeeSignupSchema>;
 
-export const OrganizationSignupSchema = z.object({
+export const organizationSignupSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, { error: "Please enter a valid first name" })
-    .max(40, { error: "A name cannot exceed 40 characters" })
-    .regex(/^[A-Za-z]+$/, { error: "Please enter a valid first name" }),
+    .min(2, { error: "Too short. Minimum 2 letters expected" })
+    .max(40, { error: "Name cannot exceed 40 characters" })
+    .regex(/^(?=.*[A-Za-z])[A-Za-z0-9](?:[A-Za-z0-9]|[.'-](?=[A-Za-z0-9]))*$/, {
+      error: "Please enter a valid organization name",
+    }),
   username: z
     .string()
     .trim()
-    .min(3, { error: "Username must have at least 3 characters" })
+    .min(3, { error: "Too short. Minimum 3 characters expected" })
     .max(25, { error: "Username cannot exceed 25 characters" })
     .regex(/^(?=.*[a-zA-Z])[a-zA-Z0-9_]{3,}$/, {
-      error: "Only letters, numbers, and underscores allowed. Must contain at least one letter",
+      error: "Only letters, numbers, and underscores allowed. At least one letter expected",
     }),
   email: z
     .email("Please provide a valid email address")
     .trim()
     .lowercase()
-    .min(6, "Please provide a valid email address")
+    .min(6, "Too short. Minimum 6 characters expected")
     .max(50, { error: "Email address cannot exceed 50 characters" }),
   password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/, {
     error:
-      "Password must contain minimum 8 characters, uppercase and lowercase letters, a number, and a special character",
+      "Password must contain: minimum 8 characters, uppercase & lowercase letters, number, special character/s",
   }),
   postalCode: z
     .string()
@@ -71,10 +74,16 @@ export const OrganizationSignupSchema = z.object({
     .string()
     .trim()
     .min(4, "Invalid country name")
-    .max(32, "Only commonly used country names are allowed"),
+    .max(32, "Please provide the commonly used or shortened name of your country"),
 });
+export type OrganizationSignupData = z.infer<typeof organizationSignupSchema>;
 
-export const LoginCredentialsSchema = z
+export const signupRequestSchema = z.object({
+  body: z.union([employeeSignupSchema, organizationSignupSchema]),
+});
+export type SignupData = z.infer<typeof signupRequestSchema>;
+
+export const loginCredentialsSchema = z
   .object({
     email: z
       .email("Invalid credentials")
@@ -99,3 +108,4 @@ export const LoginCredentialsSchema = z
   .refine((data) => data.email || data.username, {
     error: "Invalid credentials",
   });
+export type LoginCredentialsInput = z.infer<typeof loginCredentialsSchema>;
