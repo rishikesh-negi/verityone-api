@@ -9,7 +9,8 @@ import {
 } from "../middleware/passwordManagementMiddleware.js";
 import {
   emailAddressFormatValidator,
-  partialNameValidator,
+  firstNameValidator,
+  lastNameValidator,
   passwordValidator,
   usernameValidator,
 } from "../utils/stringValidators.js";
@@ -23,7 +24,7 @@ const employeeSchema = new Schema(
       trim: true,
       minlength: [2, "Invalid first name"],
       maxlength: [40, "First name must not exceed 40 characters"],
-      validate: { validator: partialNameValidator, message: "Please enter a valid first name" },
+      validate: { validator: firstNameValidator, message: "Please enter a valid first name" },
     },
     lastName: {
       type: String,
@@ -31,7 +32,7 @@ const employeeSchema = new Schema(
       trim: true,
       minlength: [2, "Invalid last name"],
       maxlength: [40, "Last name must not exceed 40 characters"],
-      validate: { validator: partialNameValidator, message: "Please enter a valid last name" },
+      validate: { validator: lastNameValidator, message: "Please enter a valid last name" },
     },
     fullName: {
       type: String,
