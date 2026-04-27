@@ -1,4 +1,8 @@
-export const partialNameValidator = (name: string) => /^[A-Za-z]+$/.test(name);
+// First name validator: Only uppercase and lowercase letters allowed:
+export const firstNameValidator = (name: string) => /^[A-Za-z]+$/.test(name);
+
+// Last name validator: Only uppercase and lowercase letters. Single non-leading,, non-trailing apostrophe allowed:
+export const lastNameValidator = (lastName: string) => /^[A-Za-z]+(?:'[A-Za-z]+)?$/.test(lastName);
 
 // Email address format validator: handle -> literal @ -> domain name -> literal '.' -> TLD:
 export const emailAddressFormatValidator = (email: string) =>
