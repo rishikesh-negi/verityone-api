@@ -37,9 +37,9 @@ export const validateRequest =
             errors: z.flattenError(result.error),
           });
 
-    if ("body" in result.data) req.body = result.data.body;
-    if ("query" in result.data) req.query = result.data.query;
-    if ("params" in result.data) req.params = result.data.params;
+    if (result.data.body) req.body = result.data.body;
+    if (result.data.query) req.query = result.data.query;
+    if (result.data.params) req.params = result.data.params;
 
     next();
   };
