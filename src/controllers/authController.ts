@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 import {
   AccessTokenExpiredError,
+  AppError,
   EmailAlreadyExistsError,
   InvalidCredentialsError,
   InvalidEmailVerificationToken,
@@ -24,7 +25,7 @@ import { authenticateUser } from "../utils/authenticateUser.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
 import { REFRESH_JWT_COOKIE_NAME } from "../utils/constants.js";
 import { verifyAuthJWT } from "../utils/jwt.js";
-import { triggerRefreshJWTCookieRemoval } from "../utils/userAuthorizationResponses.js";
+import { clearClientRefreshToken } from "../utils/clearClientRefreshToken.js";
 import { checkSessionValidity } from "../utils/checkSessionValidity.js";
 import { UserAccountRegistry } from "../models/userAccountRegistryModel.js";
 
@@ -41,15 +42,26 @@ export const signup = catchAsyncError(async (req, res, next) => {
 
   const session = await mongoose.startSession();
   session.startTransaction();
-  const newUser = (await mongoose.model(accountType).create(req.body)) as
-    | EmployeeDocument
-    | OrganizationDocument;
-  await UserAccountRegistry.create({
-    userId: newUser._id,
-    email: req.body.email,
-    username: req.body.username,
-    userType: accountType,
-  });
+  const [newUser] = (await mongoose.model(accountType).create([req.body], { session })) as
+    | EmployeeDocument[]
+    | OrganizationDocument[];
+
+  if (!newUser) {
+    session.abortTransaction();
+    return next(new AppError("Signup failed. Something went wrong!", 500));
+  }
+
+  await UserAccountRegistry.create(
+    [
+      {
+        userId: newUser._id,
+        email: req.body.email,
+        username: req.body.username,
+        userType: accountType,
+      },
+    ],
+    { session },
+  );
   await session.commitTransaction();
 
   const jwtPayload: AuthJWTPayload = { id: newUser.id, accountType };
@@ -62,15 +74,13 @@ export const login = catchAsyncError(async function (req, res, next) {
   if (refreshToken) {
     const sessionIsValid = await checkSessionValidity(refreshToken);
     if (!sessionIsValid) {
-      triggerRefreshJWTCookieRemoval(req, res);
+      clearClientRefreshToken(req, res);
       return next(new InvalidSessionError());
     }
 
     if (sessionIsValid) {
       const { id, accountType } = await verifyAuthJWT(refreshToken, "refresh");
-      const UserModel = mongoose.model(accountType);
-      const userId = new mongoose.Types.ObjectId(id);
-      const user = (await UserModel.findOne({ _id: userId }).setOptions({
+      const user = (await mongoose.model(accountType).findOne({ _id: id }).setOptions({
         includeUnverified: true,
       })) as EmployeeDocument | OrganizationDocument;
       const jwtPayload: AuthJWTPayload = { id, accountType };
@@ -78,13 +88,13 @@ export const login = catchAsyncError(async function (req, res, next) {
     }
   }
 
-  const { email, password } = req.body;
-  if (!email || !password) return next(new InvalidCredentialsError());
+  const { email, username, password } = req.body;
+  if (!(email || username) || !password) return next(new InvalidCredentialsError());
 
   const user = (
     await Promise.allSettled([
-      Employee.findOne({ email }).select("+password"),
-      Organization.findOne({ email }).select("+password"),
+      Employee.findOne({ $or: [{ email }, { username }] }).select("+password"),
+      Organization.findOne({ $or: [{ email }, { username }] }).select("+password"),
     ])
   ).filter((result) => result.status === "fulfilled")?.[0]?.value;
 
@@ -131,7 +141,7 @@ export const protect = catchAsyncError(async function (req, res, next) {
   if (!sessionUser.emailIsVerified) return next(new UnverifiedEmailError());
 
   if ((sessionUser as EmployeeDocument).changedPasswordAfter(decoded.iat)) {
-    triggerRefreshJWTCookieRemoval(req, res);
+    clearClientRefreshToken(req, res);
     await DeviceSession.deleteMany({ userId });
     return next(new PasswordChangedReloginError());
   }
@@ -186,6 +196,6 @@ export const logout = catchAsyncError(async function (req, res) {
 
   await DeviceSession.deleteOne({ userId, tokenHash });
 
-  triggerRefreshJWTCookieRemoval(req, res);
+  clearClientRefreshToken(req, res);
   return res.sendStatus(204);
 });
