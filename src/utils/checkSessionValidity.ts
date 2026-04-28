@@ -19,15 +19,14 @@ export async function checkSessionValidity(refreshToken: string): Promise<boolea
   }
 
   const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
-  const UserModel = mongoose.model(accountType);
   const userId = new mongoose.Types.ObjectId(id);
   const session = await DeviceSession.findOne({ userId, tokenHash });
-  const user = (await UserModel.findById(userId).setOptions({
+  const user = (await mongoose.model(accountType).findById(userId).setOptions({
     includeUnverified: true,
   })) as EmployeeDocument | OrganizationDocument;
 
   if (!session || !user) {
-    // Possible token theft or reuse attack, so log the user out of all devices and try clearing the refresh token cookie on the client:
+    // Possible token theft or reuse attack, so log the user out of all devices and return false to signal the route handler to clear the http-only refresh token cookie on the client:
     await DeviceSession.deleteMany({ userId });
     return false;
   }
@@ -37,7 +36,7 @@ export async function checkSessionValidity(refreshToken: string): Promise<boolea
     return false;
   }
 
-  // Type-casting "user" to EmployeeDocument to get rid of the TS compile-time error raised due to the unavoidable but safe mismatch between the context types of "user" and .changedPasswordAfter() method:
+  // Type casting "user" to EmployeeDocument to get rid of the TS compile-time error raised due to the unavoidable but safe mismatch between the types of contexts of "user" and .changedPasswordAfter() method:
   if ((user as EmployeeDocument).changedPasswordAfter(decoded.iat)) {
     await DeviceSession.deleteMany({ userId });
     return false;
