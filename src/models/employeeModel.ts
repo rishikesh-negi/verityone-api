@@ -72,6 +72,7 @@ const employeeSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Organization",
       default: null,
+      index: true,
     },
     password: {
       type: String,
