@@ -9,7 +9,7 @@ import Email from "./email.js";
 import { generateToken } from "./generateToken.js";
 import { createAccessToken, createRefreshToken } from "./jwt.js";
 
-export type AuthCreatorFunctionParams = {
+export type AuthenticatorFunctionParams = {
   req: Request;
   res: Response;
   jwtPayload: AuthJWTPayload;
@@ -17,7 +17,7 @@ export type AuthCreatorFunctionParams = {
   authAction: "signup" | "login";
 };
 
-export async function authenticateUser(authParams: AuthCreatorFunctionParams) {
+export async function authenticateUser(authParams: AuthenticatorFunctionParams) {
   const { req, res, jwtPayload, user, authAction } = authParams;
   const { accountType } = jwtPayload;
 
@@ -37,9 +37,12 @@ export async function authenticateUser(authParams: AuthCreatorFunctionParams) {
 
   res.cookie(REFRESH_JWT_COOKIE_NAME, refreshToken, {
     expires: refreshTokenExpiry,
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+    secure:
+      process.env["NODE_ENV"] === "development"
+        ? false
+        : req.secure || req.headers["x-forwarded-proto"] === "https",
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: process.env["NODE_ENV"] === "development" ? "lax" : "strict",
   });
 
   const userData: Record<string, unknown> = {};
