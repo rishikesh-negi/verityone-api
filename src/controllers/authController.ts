@@ -11,7 +11,7 @@ import {
   InvalidSignupDataError,
   InvalidTokenError,
   NoAccessTokenError,
-  PasswordChangedReloginError,
+  ReloginRequiredError,
   UnverifiedEmailError,
   UsernameTakenError,
   UserNotFoundError,
@@ -129,21 +129,20 @@ export const protect = catchAsyncError(async function (req, res, next) {
   const sessionUser = (await UserModel.findById(userId)) as EmployeeDocument | OrganizationDocument;
 
   if (!sessionUser) return next(new UserNotFoundError());
-  if (
-    !sessionUser.emailIsVerified &&
-    Date.now() > sessionUser.emailVerificationExpires!.getTime()
-  ) {
-    await UserModel.deleteOne({ _id: userId });
-    await DeviceSession.deleteMany({ userId });
-    return next(new VerificationWindowExpiredError());
-  }
+  if (!sessionUser.emailIsVerified) {
+    if (Date.now() > sessionUser.emailVerificationExpires!.getTime()) {
+      await UserModel.deleteOne({ _id: userId });
+      await DeviceSession.deleteMany({ userId });
+      return next(new VerificationWindowExpiredError());
+    }
 
-  if (!sessionUser.emailIsVerified) return next(new UnverifiedEmailError());
+    return next(new UnverifiedEmailError());
+  }
 
   if ((sessionUser as EmployeeDocument).changedPasswordAfter(decoded.iat)) {
     clearClientRefreshToken(req, res);
     await DeviceSession.deleteMany({ userId });
-    return next(new PasswordChangedReloginError());
+    return next(new ReloginRequiredError());
   }
 
   req.user = sessionUser;
@@ -177,6 +176,7 @@ export const verifyEmailAddress = catchAsyncError(async function (req, res, next
   user.emailVerificationExpires = null;
   user.emailVerificationToken = null;
   await user.save();
+  return res.redirect(301, `${req.protocol}://${req.get("host")}/`);
 });
 
 export const restrictToVerified = catchAsyncError(async function (req, _res, next) {
