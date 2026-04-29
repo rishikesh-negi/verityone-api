@@ -107,7 +107,7 @@ export class InvalidEmailVerificationToken extends AppError {
   }
 }
 
-export class PasswordChangedReloginError extends AppError {
+export class ReloginRequiredError extends AppError {
   constructor(message = "Please log in with your updated password") {
     super(message, 401, "password-changed");
   }
