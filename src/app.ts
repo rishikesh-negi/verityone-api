@@ -11,6 +11,9 @@ import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 import { sanitizeRequest } from "./middleware/sanitizeData.js";
 import { fileURLToPath } from "url";
 
+import usersRouter from "./routes/userRoutes.js";
+import onboardingInvitesRouter from "./routes/onboardingInviteRoutes.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -72,6 +75,8 @@ app.use((req, _res, next) => {
 });
 
 // Mount routers here:
+app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/invites", onboardingInvitesRouter);
 
 app.all(/.*/, (req, _res, next) => {
   next(new AppError(`The requested resource ${req.originalUrl} does not exist`, 404));
