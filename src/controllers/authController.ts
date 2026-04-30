@@ -5,6 +5,7 @@ import {
   AccessTokenExpiredError,
   AppError,
   EmailAlreadyExistsError,
+  ForbiddebAccessError,
   InvalidCredentialsError,
   InvalidEmailVerificationToken,
   InvalidSessionError,
@@ -20,7 +21,7 @@ import {
 import { DeviceSession } from "../models/deviceSessionModel.js";
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
 import { Organization, type OrganizationDocument } from "../models/organizationModel.js";
-import type { AuthJWTPayload } from "../types/types.js";
+import type { AuthJWTPayload, RequestWithUser } from "../types/types.js";
 import { authenticateUser } from "../utils/authenticateUser.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
 import { REFRESH_JWT_COOKIE_NAME } from "../utils/constants.js";
@@ -28,6 +29,7 @@ import { verifyAuthJWT } from "../utils/jwt.js";
 import { clearClientRefreshToken } from "../utils/clearClientRefreshToken.js";
 import { checkSessionValidity } from "../utils/checkSessionValidity.js";
 import { UserAccountRegistry } from "../models/userAccountRegistryModel.js";
+import type { NextFunction, Response } from "express";
 
 export const signup = catchAsyncError(async (req, res, next) => {
   const accountType =
@@ -185,6 +187,13 @@ export const restrictToVerified = catchAsyncError(async function (req, _res, nex
 
   return next();
 });
+
+export const restrictTo =
+  (role: "Employee" | "Organization") =>
+  (req: RequestWithUser, _res: Response, next: NextFunction) => {
+    if (role !== req.user?.userType) return next(new ForbiddebAccessError());
+    next();
+  };
 
 export const logout = catchAsyncError(async function (req, res) {
   const refreshToken = req.cookies[REFRESH_JWT_COOKIE_NAME];
