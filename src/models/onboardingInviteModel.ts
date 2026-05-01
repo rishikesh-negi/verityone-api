@@ -15,6 +15,8 @@ const onboardingInviteSchema = new Schema(
   { timestamps: true },
 );
 
+onboardingInviteSchema.index({ organization: 1, employee: 1 }, { unique: true });
+
 type IOnboardingInvite = InferSchemaType<typeof onboardingInviteSchema>;
 
 export const OnboardingInvite = model<IOnboardingInvite>(
