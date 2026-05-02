@@ -44,30 +44,33 @@ export const signup = catchAsyncError(async (req, res, next) => {
 
   const session = await mongoose.startSession();
   session.startTransaction();
-  const [newUser] = (await mongoose.model(accountType).create([req.body], { session })) as
-    | EmployeeDocument[]
-    | OrganizationDocument[];
+  try {
+    const [newUser] = (await mongoose.model(accountType).create([req.body], { session })) as
+      | EmployeeDocument[]
+      | OrganizationDocument[];
+    if (!newUser) throw new Error();
 
-  if (!newUser) {
-    session.abortTransaction();
-    return next(new AppError("Signup failed. Something went wrong!", 500));
+    await UserAccountRegistry.create(
+      [
+        {
+          userId: newUser._id,
+          email: req.body.email,
+          username: req.body.username,
+          userType: accountType,
+        },
+      ],
+      { session },
+    );
+    await session.commitTransaction();
+
+    const jwtPayload: AuthJWTPayload = { id: newUser.id, accountType };
+    return authenticateUser({ req, res, jwtPayload, user: newUser, authAction: "signup" });
+  } catch {
+    await session.abortTransaction();
+    return next(new AppError("Signup failed. Something went wrong", 500));
+  } finally {
+    await session.endSession();
   }
-
-  await UserAccountRegistry.create(
-    [
-      {
-        userId: newUser._id,
-        email: req.body.email,
-        username: req.body.username,
-        userType: accountType,
-      },
-    ],
-    { session },
-  );
-  await session.commitTransaction();
-
-  const jwtPayload: AuthJWTPayload = { id: newUser.id, accountType };
-  return authenticateUser({ req, res, jwtPayload, user: newUser, authAction: "signup" });
 });
 
 export const login = catchAsyncError(async function (req, res, next) {
