@@ -1,17 +1,22 @@
+import { format } from "date-fns";
 import type { NextFunction, Response } from "express";
+import mongoose from "mongoose";
 import {
   AppError,
   BadRequestError,
+  NotFoundError,
   UnauthorizedAccessError,
   UnprocessableContentError,
 } from "../errors/AppError.js";
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
 import { OnboardingInvite } from "../models/onboardingInviteModel.js";
+import { Organization } from "../models/organizationModel.js";
 import type { RequestWithUser } from "../types/types.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
-import mongoose from "mongoose";
-import { onboardingInviteValidityInSeconds } from "../utils/constants.js";
-import { format } from "date-fns";
+import {
+  onboardingInviteValidityInSeconds,
+  organizationRefPopulateFields,
+} from "../utils/constants.js";
 
 export const createInvite = catchAsyncError(
   async (req: RequestWithUser, res: Response, next: NextFunction) => {
@@ -19,22 +24,32 @@ export const createInvite = catchAsyncError(
     if (!employeeId) return next(new BadRequestError());
 
     const employee = await Employee.findById(employeeId);
-    if (!employee) return next(new UnprocessableContentError());
+    if (!employee) return next(new NotFoundError("Employee not found"));
     if (employee.organization !== null)
-      return next(new AppError("Employee is part of another organization", 403));
+      return next(
+        new AppError(
+          "Employee was onboarded by another organization",
+          403,
+          "employee-not-available",
+        ),
+      );
 
     const existingInvite = await OnboardingInvite.findOne({
       organization: req.user!.id,
       employee: employeeId,
-    }).select("+createdAt");
+    })
+      .setOptions({ includeAllInvites: true })
+      .select("+createdAt");
 
     if (existingInvite) {
       const inviteExpiryTimestamp =
         existingInvite.createdAt.getTime() + onboardingInviteValidityInSeconds * 1000;
       const inviteExpiryDateString = format(inviteExpiryTimestamp, "MMM dd, yyyy");
       return next(
-        new UnprocessableContentError(
+        new AppError(
           `Cannot invite this employee again until ${inviteExpiryDateString}`,
+          403,
+          "invite-exists",
         ),
       );
     }
@@ -42,7 +57,7 @@ export const createInvite = catchAsyncError(
     await OnboardingInvite.create({ organization: req.user!.id, employee: employeeId });
     return res.status(201).json({
       status: "success",
-      message: "Onboarding invite sent to the employee",
+      message: `Invite sent to ${employee.firstName}`,
     });
   },
 );
@@ -52,8 +67,15 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
   if (!inviteId) return next(new BadRequestError());
 
   const invite = await OnboardingInvite.findById(inviteId);
-  if (!invite) return next(new UnprocessableContentError());
+  if (!invite) return next(new NotFoundError("Invite not found"));
   if (req.user!.id !== invite.employee.toString()) return next(new UnauthorizedAccessError());
+
+  const organizationExists = await Organization.exists({ _id: invite.organization, active: true });
+  if (!organizationExists) {
+    invite.status = "orphaned";
+    await invite.save();
+    return next(new AppError("Organization not found or no longer exists", 404, "org-not-found"));
+  }
 
   (req.user as EmployeeDocument).organization = invite.organization;
   invite.status = "accepted";
@@ -61,10 +83,17 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    await req.user!.save({ session });
+    req.user = await req.user!.save({ session });
+    req.user = await (req.user as EmployeeDocument).populate({
+      path: "organization",
+      select: organizationRefPopulateFields,
+      options: { session },
+    });
     await invite.save({ session });
     await session.commitTransaction();
-    return res.status(200).json({ status: "success", message: "Onboarding invite accepted!" });
+    return res
+      .status(200)
+      .json({ status: "success", message: "Onboarding invite accepted!", user: req.user });
   } catch {
     await session.abortTransaction();
     return next(new AppError("Action failed. Something went wrong", 500));
