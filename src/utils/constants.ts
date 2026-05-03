@@ -9,3 +9,6 @@ export const DEVICE_SESSION_VALIDITY_IN_SECONDS =
 export const REFRESH_JWT_COOKIE_NAME = "refresh_token";
 
 export const onboardingInviteValidityInSeconds = 3 * 30.5 * 24 * 60 * 60;
+
+export const organizationRefPopulateFields =
+  "_id name slug username email postalCode city country ratingsAverage numRatings";
