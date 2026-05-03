@@ -8,7 +8,7 @@ const onboardingInviteSchema = new Schema(
     status: {
       type: String,
       required: true,
-      enum: ["pending", "accepted", "rejected"],
+      enum: ["pending", "accepted", "rejected", "orphaned"],
       default: "pending",
     },
     createdAt: {
