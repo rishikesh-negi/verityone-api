@@ -1,9 +1,9 @@
 import { model, Schema, type InferSchemaType } from "mongoose";
-import { metrics, numQuestions, questionLabels } from "../data/surveyQuestions.js";
+import { metrics, numQuestions, questionCruxes } from "../data/surveyQuestions.js";
 
 type SurveyQuestionResponse = {
   metric: number;
-  label: string;
+  crux: string;
   response: number;
 };
 
@@ -13,7 +13,7 @@ const surveyResponseSchema = new Schema({
     type: [
       {
         metric: { required: true, type: String, enum: metrics },
-        label: { required: true, type: String, enum: questionLabels },
+        crux: { required: true, type: String, enum: questionCruxes },
         response: {
           required: true,
           type: Number,
@@ -23,8 +23,12 @@ const surveyResponseSchema = new Schema({
       },
     ],
     validate: {
-      validator: function (v: SurveyQuestionResponse[]) {
-        return v.length === numQuestions;
+      validator: (v: SurveyQuestionResponse[]) => {
+        if (v.length !== numQuestions) return false;
+        const responseCruxesSet = new Set(v.map((answer) => answer.crux));
+        if (responseCruxesSet.size !== numQuestions) return false;
+        if (!questionCruxes.every((crux) => responseCruxesSet.has(crux))) return false;
+        return true;
       },
     },
   },
