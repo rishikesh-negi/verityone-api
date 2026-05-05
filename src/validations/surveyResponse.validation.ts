@@ -1,9 +1,9 @@
 import z from "zod";
-import { metrics, numQuestions, questionCruxes } from "../data/surveyQuestions.js";
+import { surveyMetrics, numQuestions, surveyCruxes } from "../data/surveyQuestions.js";
 
 const answerSchema = z.object({
-  metric: z.enum(metrics),
-  crux: z.enum(questionCruxes),
+  metric: z.enum(surveyMetrics),
+  crux: z.enum(surveyCruxes),
   response: z
     .number()
     .min(1, "Response score should be at least 1")
@@ -17,7 +17,7 @@ export const responseSchema = z.object({
       return (
         answers.length === numQuestions &&
         answerCruxes.size === numQuestions &&
-        questionCruxes.every((crux) => answerCruxes.has(crux))
+        surveyCruxes.every((crux) => answerCruxes.has(crux))
       );
     }),
   }),
