@@ -1,5 +1,5 @@
 import { model, Schema, type InferSchemaType } from "mongoose";
-import { metrics, numQuestions, questionCruxes } from "../data/surveyQuestions.js";
+import { surveyMetrics, numQuestions, surveyCruxes } from "../data/surveyQuestions.js";
 
 type SurveyQuestionResponse = {
   metric: number;
@@ -12,8 +12,8 @@ const surveyResponseSchema = new Schema({
     required: true,
     type: [
       {
-        metric: { required: true, type: String, enum: metrics },
-        crux: { required: true, type: String, enum: questionCruxes },
+        metric: { required: true, type: String, enum: surveyMetrics },
+        crux: { required: true, type: String, enum: surveyCruxes },
         response: {
           required: true,
           type: Number,
@@ -27,9 +27,10 @@ const surveyResponseSchema = new Schema({
         if (v.length !== numQuestions) return false;
         const responseCruxesSet = new Set(v.map((answer) => answer.crux));
         if (responseCruxesSet.size !== numQuestions) return false;
-        if (!questionCruxes.every((crux) => responseCruxesSet.has(crux))) return false;
+        if (!surveyCruxes.every((crux) => responseCruxesSet.has(crux))) return false;
         return true;
       },
+      message: "Invalid or unprocessable survey response",
     },
   },
 });
