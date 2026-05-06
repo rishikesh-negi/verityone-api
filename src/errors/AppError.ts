@@ -119,6 +119,12 @@ export class SessionCompromisedError extends AppError {
   }
 }
 
+export class OngoingSurveyExistsError extends AppError {
+  constructor(message = "Cannot create a survey while another is already in progress") {
+    super(message, 403, "ongoing-survey-found");
+  }
+}
+
 export class BadRequestError extends AppError {
   constructor(message = "Bad request") {
     super(message, 400);
