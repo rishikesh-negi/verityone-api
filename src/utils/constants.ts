@@ -12,3 +12,5 @@ export const onboardingInviteValidityInSeconds = 3 * 30.5 * 24 * 60 * 60;
 
 export const organizationRefPopulateFields =
   "_id name slug username email postalCode city country ratingsAverage numRatings";
+
+export const surveyDurationInDaysOptions: number[] = [7, 30, 90];
