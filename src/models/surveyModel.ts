@@ -5,7 +5,7 @@ import {
   surveyQuestions,
   type SurveyQuestion,
 } from "../data/surveyQuestions.js";
-import { surveyDurationInDaysOptions } from "../utils/constants.js";
+import { SURVEY_DURATION_DAYS_OPTIONS } from "../utils/constants.js";
 
 const surveySchema = new Schema(
   {
@@ -34,7 +34,7 @@ const surveySchema = new Schema(
         },
       },
     },
-    surveyDurationInDays: { type: Number, required: true, enum: surveyDurationInDaysOptions },
+    surveyDurationInDays: { type: Number, required: true, enum: SURVEY_DURATION_DAYS_OPTIONS },
     hasConcluded: { type: Boolean, required: true, default: false },
     numParticipants: { type: Number, required: true, default: 0 },
     createdAt: { type: Date, required: true, default: Date.now(), immutable: true },

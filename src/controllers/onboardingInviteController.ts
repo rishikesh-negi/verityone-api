@@ -13,10 +13,7 @@ import { OnboardingInvite } from "../models/onboardingInviteModel.js";
 import { Organization } from "../models/organizationModel.js";
 import type { RequestWithUser } from "../types/types.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
-import {
-  onboardingInviteValidityInSeconds,
-  organizationRefPopulateFields,
-} from "../utils/constants.js";
+import { INVITE_VALIDITY_SECONDS, ORG_FIELDS_TO_POPULATE } from "../utils/constants.js";
 
 export const createInvite = catchAsyncError(
   async (req: RequestWithUser, res: Response, next: NextFunction) => {
@@ -43,7 +40,7 @@ export const createInvite = catchAsyncError(
 
     if (existingInvite) {
       const inviteExpiryTimestamp =
-        existingInvite.createdAt.getTime() + onboardingInviteValidityInSeconds * 1000;
+        existingInvite.createdAt.getTime() + INVITE_VALIDITY_SECONDS * 1000;
       const inviteExpiryDateString = format(inviteExpiryTimestamp, "MMM dd, yyyy");
       return next(
         new AppError(
@@ -86,7 +83,7 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
     req.user = await req.user!.save({ session });
     req.user = await (req.user as EmployeeDocument).populate({
       path: "organization",
-      select: organizationRefPopulateFields,
+      select: ORG_FIELDS_TO_POPULATE,
       options: { session },
     });
     await invite.save({ session });

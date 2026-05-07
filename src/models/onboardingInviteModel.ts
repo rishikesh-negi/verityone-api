@@ -1,5 +1,5 @@
 import { model, Query, Schema, type InferSchemaType } from "mongoose";
-import { onboardingInviteValidityInSeconds } from "../utils/constants.js";
+import { INVITE_VALIDITY_SECONDS } from "../utils/constants.js";
 
 const onboardingInviteSchema = new Schema(
   {
@@ -14,7 +14,7 @@ const onboardingInviteSchema = new Schema(
     createdAt: {
       type: Date,
       default: Date.now(),
-      expires: onboardingInviteValidityInSeconds,
+      expires: INVITE_VALIDITY_SECONDS,
       select: false,
       immutable: true,
     },
