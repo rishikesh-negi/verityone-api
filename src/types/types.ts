@@ -8,9 +8,9 @@ export interface RequestWithUser extends Request {
   user?: EmployeeDocument | OrganizationDocument;
 }
 
-export type SyncController = (req: RequestWithUser, res: Response, next: NextFunction) => void;
+export type SyncRouteHandler = (req: RequestWithUser, res: Response, next: NextFunction) => void;
 
-export type AsyncController = (
+export type AsyncRouteHandler = (
   req: RequestWithUser,
   res: Response,
   next: NextFunction,
