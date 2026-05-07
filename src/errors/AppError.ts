@@ -125,6 +125,12 @@ export class OngoingSurveyExistsError extends AppError {
   }
 }
 
+export class TooFewEmployesToSurveyError extends AppError {
+  constructor(message = "Organization must have 25+ employees to conduct a survey") {
+    super(message, 403, "too-few-employees");
+  }
+}
+
 export class BadRequestError extends AppError {
   constructor(message = "Bad request") {
     super(message, 400);
