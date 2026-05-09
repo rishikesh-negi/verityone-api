@@ -8,6 +8,7 @@ import { REFRESH_JWT_COOKIE_NAME } from "./constants.js";
 import Email from "./email.js";
 import { generateToken } from "./generateToken.js";
 import { createAccessToken, createRefreshToken } from "./jwt.js";
+import { Survey } from "../models/surveyModel.js";
 
 export type AuthenticatorFunctionParams = {
   req: Request;
@@ -26,6 +27,14 @@ export async function authenticateUser(authParams: AuthenticatorFunctionParams) 
   const userAgent = req.headers["user-agent"];
   const ipAddress = req.ip;
   const resStatusCode = authAction === "login" ? 200 : 201;
+
+  const organization =
+    authAction === "login" &&
+    ((accountType === "Organization" && user.id) ||
+      (accountType === "Employee" && (user as EmployeeDocument).organization));
+  const ongoingSurvey = organization
+    ? await Survey.findOne({ organization, hasConcluded: false }).lean()
+    : null;
 
   await DeviceSession.create({
     userId: new mongoose.Types.ObjectId(user.id),
@@ -63,7 +72,10 @@ export async function authenticateUser(authParams: AuthenticatorFunctionParams) 
 
   res.status(resStatusCode).json({
     message: "success",
-    user: userData,
+    data: {
+      user: userData,
+      ...(ongoingSurvey ? { ongoingSurvey } : {}),
+    },
     accessToken,
     tokenExpiresAt: accessTokenExpiry,
   });
