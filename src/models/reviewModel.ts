@@ -1,13 +1,14 @@
-import { model, Schema, type InferSchemaType } from "mongoose";
+import { model, Query, Schema, type InferSchemaType } from "mongoose";
 
 const reviewSchema = new Schema({
   anonymousId: {
     type: Schema.Types.UUID,
     required: [true, "An anonymous review ID is required"],
     ref: "UserIdentityVault",
+    index: true,
   },
   organization: {
-    type: Schema.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "Organization",
     required: [true, "A review must be for an organization"],
   },
@@ -28,6 +29,13 @@ const reviewSchema = new Schema({
 });
 
 reviewSchema.index({ organization: 1, anonymousId: 1 }, { unique: true });
+
+reviewSchema.pre(/^find/, async function (this: Query<unknown, IReview>) {
+  this.populate({
+    path: "organization",
+    select: "name city",
+  });
+});
 
 export type IReview = InferSchemaType<typeof reviewSchema>;
 
