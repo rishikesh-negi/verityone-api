@@ -1,7 +1,7 @@
 import mongoose, { Schema, type InferSchemaType } from "mongoose";
 import { emailAddressFormatValidator, usernameValidator } from "../utils/stringValidators.js";
 
-const userAccountRegistrySchema = new Schema({
+const userAccountsRegistrySchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
     refPath: "userType",
@@ -30,9 +30,9 @@ const userAccountRegistrySchema = new Schema({
   userType: { type: String, required: true, immutable: true, enum: ["Employee", "Organization"] },
 });
 
-type IUserAccountRegistry = InferSchemaType<typeof userAccountRegistrySchema>;
+type IUserAccountsRegistry = InferSchemaType<typeof userAccountsRegistrySchema>;
 
-export const UserAccountRegistry = mongoose.model<IUserAccountRegistry>(
-  "UserAccountRegistry",
-  userAccountRegistrySchema,
+export const UserAccountsRegistry = mongoose.model<IUserAccountsRegistry>(
+  "UserAccountsRegistry",
+  userAccountsRegistrySchema,
 );
