@@ -82,7 +82,7 @@ const organizationSchema = new Schema(
       minLength: [4, "Invalid country name"],
       maxLength: [32, "Only commonly used country names are allowed"],
     },
-    ratingsAverage: {
+    overallRating: {
       type: Number,
       default: 0,
       set: (val: number) => (val > 1 || val < 5 ? val.toFixed(1) : val),
