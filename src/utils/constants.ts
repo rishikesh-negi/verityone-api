@@ -11,7 +11,7 @@ export const REFRESH_JWT_COOKIE_NAME = "refresh_token";
 export const INVITE_VALIDITY_SECONDS = 3 * 30.5 * 24 * 60 * 60;
 
 export const ORG_FIELDS_TO_POPULATE =
-  "_id name slug username email postalCode city country ratingsAverage numRatings";
+  "_id name slug username email postalCode city country overallRating numRatings";
 
 export const SURVEY_DURATION_DAYS_OPTIONS: number[] = [7, 30, 90];
 
