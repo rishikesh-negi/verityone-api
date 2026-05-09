@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
 
+import type { NextFunction, Response } from "express";
 import {
   AccessTokenExpiredError,
   AppError,
@@ -21,15 +22,14 @@ import {
 import { DeviceSession } from "../models/deviceSessionModel.js";
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
 import { Organization, type OrganizationDocument } from "../models/organizationModel.js";
+import { UserAccountsRegistry } from "../models/userAccountsRegistryModel.js";
 import type { AuthJWTPayload, RequestWithUser } from "../types/types.js";
 import { authenticateUser } from "../utils/authenticateUser.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
+import { checkSessionValidity } from "../utils/checkSessionValidity.js";
+import { clearClientRefreshToken } from "../utils/clearClientRefreshToken.js";
 import { REFRESH_JWT_COOKIE_NAME } from "../utils/constants.js";
 import { verifyAuthJWT } from "../utils/jwt.js";
-import { clearClientRefreshToken } from "../utils/clearClientRefreshToken.js";
-import { checkSessionValidity } from "../utils/checkSessionValidity.js";
-import { UserAccountRegistry } from "../models/userAccountRegistryModel.js";
-import type { NextFunction, Response } from "express";
 
 export const signup = catchAsyncError(async (req, res, next) => {
   const accountType =
@@ -37,9 +37,9 @@ export const signup = catchAsyncError(async (req, res, next) => {
 
   if (!accountType) return next(new InvalidSignupDataError());
 
-  const emailAlreadyExists = await UserAccountRegistry.findOne({ email: req.body.email });
+  const emailAlreadyExists = await UserAccountsRegistry.findOne({ email: req.body.email });
   if (emailAlreadyExists) return next(new EmailAlreadyExistsError());
-  const usernameTaken = await UserAccountRegistry.findOne({ username: req.body.username });
+  const usernameTaken = await UserAccountsRegistry.findOne({ username: req.body.username });
   if (usernameTaken) return next(new UsernameTakenError());
 
   const session = await mongoose.startSession();
@@ -50,7 +50,7 @@ export const signup = catchAsyncError(async (req, res, next) => {
       | OrganizationDocument[];
     if (!newUser) throw new Error();
 
-    await UserAccountRegistry.create(
+    await UserAccountsRegistry.create(
       [
         {
           userId: newUser._id,
