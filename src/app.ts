@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-const allowedOrigins = ["http://localhost:8000", "https://verityone.vercel.app"];
+const allowedOrigins = ["http://localhost:3000", "https://verityone.vercel.app"];
 
 app.enable("trust proxy");
 app.use(
