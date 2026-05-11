@@ -16,6 +16,8 @@ export const startSSE = (req: RequestWithUser, res: Response) => {
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
 
+  res.flushHeaders();
+
   sseService.addClient(orgId, res);
 
   const heartbeat = setInterval(() => {
