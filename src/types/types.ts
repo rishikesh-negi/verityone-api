@@ -8,8 +8,10 @@ export interface RequestWithUser extends Request {
   user?: EmployeeDocument | OrganizationDocument;
 }
 
-export interface SSEResponseStream extends Response {
+export interface SSESubscriberClient {
   subscriberId: string;
+  res: Response;
+  connectedAt: number;
 }
 
 export type SyncRouteHandler = (req: RequestWithUser, res: Response, next: NextFunction) => void;
