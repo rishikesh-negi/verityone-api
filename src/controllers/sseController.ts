@@ -1,19 +1,27 @@
 import type { CookieOptions, Request, Response } from "express";
 import type { EmployeeDocument } from "../models/employeeModel.js";
 import { sseService } from "../services/sseService.js";
-import type { RequestWithUser, SSEResponseStream } from "../types/types.js";
+import type { RequestWithUser, SSESubscriberClient } from "../types/types.js";
 import { v7 as uuidv7 } from "uuid";
 
-export const subscribeToPublicSSE = (req: Request, res: SSEResponseStream) => {
+const setAndSendSSEHeaders = (res: Response) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
 
   res.flushHeaders();
+};
 
-  res.subscriberId = uuidv7();
+export const subscribeToPublicSSE = (req: Request, res: Response) => {
+  setAndSendSSEHeaders(res);
 
-  sseService.addClient(res);
+  const client: SSESubscriberClient = {
+    subscriberId: uuidv7(),
+    res,
+    connectedAt: Date.now(),
+  };
+
+  sseService.addClient(client);
   const sseSubscriberIdCookieOptions: CookieOptions = {
     httpOnly: true,
     secure:
@@ -21,9 +29,10 @@ export const subscribeToPublicSSE = (req: Request, res: SSEResponseStream) => {
         ? false
         : req.secure || req.headers["x-forwarded-proto"] === "https",
     sameSite: process.env["NODE_ENV"] === "development" ? "lax" : "strict",
+    path: "/api/v1/events",
   };
 
-  res.cookie("sse_subscriber_id", res.subscriberId, sseSubscriberIdCookieOptions);
+  res.cookie("sse_subscriber_id", client.subscriberId, sseSubscriberIdCookieOptions);
 
   const heartbeat = setInterval(() => res.write(": keep-alive"), 30_000);
 
@@ -48,5 +57,5 @@ export const startSSE = (req: RequestWithUser, res: Response) => {
 
   res.flushHeaders();
 
-  sseService.addClient(res, orgId);
+  // sseService.addClient(res, orgId);
 };
