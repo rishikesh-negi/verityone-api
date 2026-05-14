@@ -14,3 +14,5 @@ router.post(
   validateRequest(surveyCreationSchema) as RequestHandler,
   createSurvey,
 );
+
+export default router;
