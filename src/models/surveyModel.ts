@@ -38,7 +38,7 @@ const surveySchema = new Schema(
     hasConcluded: { type: Boolean, required: true, default: false },
     numParticipants: { type: Number, required: true, default: 0 },
     createdAt: { type: Date, required: true, default: Date.now(), immutable: true },
-    concludedAt: { type: Date, required: true, immutable: true },
+    concludedAt: { type: Date, required: true, immutable: true, index: true },
   },
   { timestamps: true },
 );
