@@ -41,7 +41,6 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
     return next(new BadRequestError("Invalid value received for survey duration"));
 
   const concludedAt = Date.now() + surveyDurationInDays * 24 * 60 * 60 * 1000;
-
   const newSurvey = await Survey.create({ organization, surveyDurationInDays, concludedAt });
 
   return res.status(201).json({
