@@ -2,13 +2,16 @@ import { format } from "date-fns";
 import {
   AppError,
   BadRequestError,
+  NotFoundError,
   OngoingSurveyExistsError,
   TooFewEmployesToSurveyError,
   UnauthorizedAccessError,
+  UnprocessableContentError,
 } from "../errors/AppError.js";
+import type { OrganizationDocument } from "../models/organizationModel.js";
 import { Survey } from "../models/surveyModel.js";
+import { SurveyResponse } from "../models/surveyResponseModel.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
-import { Employee } from "../models/employeeModel.js";
 import {
   MIN_EMPLOYEES_TO_SURVEY,
   SURVEY_COOLDOWN_MS,
@@ -19,7 +22,7 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
   const organization = req.user?.id;
   if (!organization) return next(new UnauthorizedAccessError());
 
-  const numEmployees = await Employee.countDocuments({ active: true, organization });
+  const numEmployees = (req.user as OrganizationDocument).numEmployees;
   if (numEmployees < MIN_EMPLOYEES_TO_SURVEY) return next(new TooFewEmployesToSurveyError());
 
   const ongoingSurvey = await Survey.exists({ organization, hasConcluded: false });
@@ -48,4 +51,25 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
     message: "Survey successfully created!",
     survey: newSurvey,
   });
+});
+
+export const endSurvey = catchAsyncError(async (req, res, next) => {
+  const surveyId = req.params;
+  const orgId = (req.user as OrganizationDocument).id;
+
+  const survey = await Survey.findOne({ _id: surveyId, organization: orgId, hasConcluded: false });
+  if (!survey) return next(new NotFoundError("No such survey found"));
+
+  const numEmployees = (req.user as OrganizationDocument).numEmployees;
+  const numParticipants = await SurveyResponse.countDocuments({ survey: surveyId });
+  const participation = numParticipants / numEmployees;
+  if (participation < 0.6)
+    return next(
+      new UnprocessableContentError(
+        "Cannot manually end a survey with participation rate less than 60%",
+      ),
+    );
+
+  // 1. Add survey result & analytics generation logic here
+  // 2. Update survey status and conclusion date & time
 });
