@@ -82,6 +82,7 @@ const organizationSchema = new Schema(
       minLength: [4, "Invalid country name"],
       maxLength: [32, "Only commonly used country names are allowed"],
     },
+    numEmployees: { type: Number, default: 0 },
     overallRating: {
       type: Number,
       default: 0,
