@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import type { NextFunction, Response } from "express";
 import mongoose from "mongoose";
 import {
   AppError,
@@ -11,49 +10,53 @@ import {
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
 import { OnboardingInvite } from "../models/onboardingInviteModel.js";
 import { Workplace } from "../models/workplaceModel.js";
-import type { RequestWithUser } from "../types/types.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
-import { INVITE_VALIDITY_SECONDS, ORG_FIELDS_TO_POPULATE } from "../utils/constants.js";
+import { INVITE_VALIDITY_SECONDS, WORKPLACE_FIELDS_TO_POPULATE } from "../utils/constants.js";
 
-export const createInvite = catchAsyncError(
-  async (req: RequestWithUser, res: Response, next: NextFunction) => {
-    const { employeeId } = req.params;
-    if (!employeeId) return next(new BadRequestError());
+export const createInvite = catchAsyncError(async (req, res, next) => {
+  const { employeeId } = req.params;
+  if (!employeeId) return next(new BadRequestError());
 
-    const employee = await Employee.findById(employeeId);
-    if (!employee) return next(new NotFoundError("Employee not found"));
-    if (employee.workplace !== null)
-      return next(
-        new AppError("Employee was onboarded by another workplace", 403, "employee-not-available"),
-      );
+  const employee = await Employee.findById(employeeId);
+  if (!employee) return next(new NotFoundError("Employee not found"));
+  if (employee.workplace !== null)
+    return next(
+      new AppError("Employee was onboarded by another workplace", 403, "employee-not-available"),
+    );
 
-    const existingInvite = await OnboardingInvite.findOne({
-      workplace: req.user!.id,
-      employee: employeeId,
-    })
-      .setOptions({ includeAllInvites: true })
-      .select("+createdAt");
+  const existingInvite = await OnboardingInvite.findOne({
+    workplace: req.user!.id,
+    employee: employeeId,
+  })
+    .setOptions({ includeAllInvites: true })
+    .select("+createdAt");
 
-    if (existingInvite) {
-      const inviteExpiryTimestamp =
-        existingInvite.createdAt.getTime() + INVITE_VALIDITY_SECONDS * 1000;
-      const inviteExpiryDateString = format(inviteExpiryTimestamp, "MMM dd, yyyy");
-      return next(
-        new AppError(
-          `Cannot invite this employee again until ${inviteExpiryDateString}`,
-          403,
-          "invite-exists",
-        ),
-      );
-    }
+  if (existingInvite) {
+    const inviteExpiryTimestamp =
+      existingInvite.createdAt.getTime() + INVITE_VALIDITY_SECONDS * 1000;
+    const inviteExpiryDateString = format(inviteExpiryTimestamp, "MMM dd, yyyy");
+    return next(
+      new AppError(
+        `Cannot invite this employee again until ${inviteExpiryDateString}`,
+        403,
+        "invite-exists",
+      ),
+    );
+  }
 
-    await OnboardingInvite.create({ workplace: req.user!.id, employee: employeeId });
-    return res.status(201).json({
-      status: "success",
-      message: `Invite sent to ${employee.firstName}`,
-    });
-  },
-);
+  await OnboardingInvite.create({ workplace: req.user!.id, employee: employeeId });
+  return res.status(201).json({
+    status: "success",
+    message: `Invite sent to ${employee.firstName}`,
+  });
+});
+
+export const getEmployeeInvites = catchAsyncError(async (req, res, next) => {
+  const invites = await OnboardingInvite.find({ employee: req.user!.id });
+  if (!invites) return next(new UnprocessableContentError("Failed to retrieve onboarding invites"));
+
+  return res.status(200).json({ status: "success", invites });
+});
 
 export const acceptInvite = catchAsyncError(async (req, res, next) => {
   const { inviteId } = req.params;
@@ -67,7 +70,9 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
   if (!workplaceExists) {
     invite.status = "orphaned";
     await invite.save();
-    return next(new AppError("Workplace not found or no longer exists", 404, "org-not-found"));
+    return next(
+      new AppError("Workplace not found or no longer exists", 404, "workplace-not-found"),
+    );
   }
 
   (req.user as EmployeeDocument).workplace = invite.workplace;
@@ -79,7 +84,7 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
     req.user = await req.user!.save({ session });
     req.user = await (req.user as EmployeeDocument).populate({
       path: "workplace",
-      select: ORG_FIELDS_TO_POPULATE,
+      select: WORKPLACE_FIELDS_TO_POPULATE,
       options: { session },
     });
     await invite.save({ session });
