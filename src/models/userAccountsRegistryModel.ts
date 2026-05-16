@@ -27,7 +27,7 @@ const userAccountsRegistrySchema = new Schema({
       message: "Only letters, numbers, and underscores allowed. Must contain at least one letter",
     },
   },
-  userType: { type: String, required: true, immutable: true, enum: ["Employee", "Organization"] },
+  userType: { type: String, required: true, immutable: true, enum: ["Employee", "Workplace"] },
 });
 
 type IUserAccountsRegistry = InferSchemaType<typeof userAccountsRegistrySchema>;

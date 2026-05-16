@@ -8,7 +8,7 @@ import {
   UnauthorizedAccessError,
   UnprocessableContentError,
 } from "../errors/AppError.js";
-import type { OrganizationDocument } from "../models/organizationModel.js";
+import type { WorkplaceDocument } from "../models/workplaceModel.js";
 import { Survey } from "../models/surveyModel.js";
 import { SurveyResponse } from "../models/surveyResponseModel.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
@@ -19,17 +19,17 @@ import {
 } from "../utils/constants.js";
 
 export const createSurvey = catchAsyncError(async (req, res, next) => {
-  const organization = req.user?.id;
-  if (!organization) return next(new UnauthorizedAccessError());
+  const workplace = req.user?.id;
+  if (!workplace) return next(new UnauthorizedAccessError());
 
-  const numEmployees = (req.user as OrganizationDocument).numEmployees;
+  const numEmployees = (req.user as WorkplaceDocument).numEmployees;
   if (numEmployees < MIN_EMPLOYEES_TO_SURVEY) return next(new TooFewEmployesToSurveyError());
 
-  const ongoingSurvey = await Survey.exists({ organization, hasConcluded: false });
+  const ongoingSurvey = await Survey.exists({ workplace, hasConcluded: false });
   if (ongoingSurvey) return next(new OngoingSurveyExistsError());
 
   const surveyCooldown = await Survey.findOne({
-    organization,
+    workplace,
     concludedAt: { $gte: Date.now() - SURVEY_COOLDOWN_MS },
   }).select("concludedAt");
   if (surveyCooldown)
@@ -44,7 +44,7 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
     return next(new BadRequestError("Invalid value received for survey duration"));
 
   const concludedAt = Date.now() + surveyDurationInDays * 24 * 60 * 60 * 1000;
-  const newSurvey = await Survey.create({ organization, surveyDurationInDays, concludedAt });
+  const newSurvey = await Survey.create({ workplace, surveyDurationInDays, concludedAt });
 
   return res.status(201).json({
     status: "success",
@@ -55,12 +55,12 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
 
 export const endSurvey = catchAsyncError(async (req, res, next) => {
   const surveyId = req.params;
-  const orgId = (req.user as OrganizationDocument).id;
+  const orgId = (req.user as WorkplaceDocument).id;
 
-  const survey = await Survey.findOne({ _id: surveyId, organization: orgId, hasConcluded: false });
+  const survey = await Survey.findOne({ _id: surveyId, workplace: orgId, hasConcluded: false });
   if (!survey) return next(new NotFoundError("No such survey found"));
 
-  const numEmployees = (req.user as OrganizationDocument).numEmployees;
+  const numEmployees = (req.user as WorkplaceDocument).numEmployees;
   const numParticipants = await SurveyResponse.countDocuments({ survey: surveyId });
   const participation = numParticipants / numEmployees;
   if (participation < 0.6)

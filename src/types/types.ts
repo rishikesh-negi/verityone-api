@@ -2,10 +2,10 @@ import type { NextFunction, Request, Response } from "express";
 import type { JwtPayload } from "jsonwebtoken";
 import type { HydratedDocument } from "mongoose";
 import type { EmployeeDocument, IEmployee } from "../models/employeeModel.js";
-import type { IOrganization, OrganizationDocument } from "../models/organizationModel.js";
+import type { IWorkplace, WorkplaceDocument } from "../models/workplaceModel.js";
 
 export interface RequestWithUser extends Request {
-  user?: EmployeeDocument | OrganizationDocument;
+  user?: EmployeeDocument | WorkplaceDocument;
 }
 
 export interface SSESubscriberClient {
@@ -24,7 +24,7 @@ export type AsyncRouteHandler = (
 
 export type CreateSendAuthJWTOptions = Required<{
   tokenType: "access" | "refresh";
-  user: HydratedDocument<IEmployee | IOrganization>;
+  user: HydratedDocument<IEmployee | IWorkplace>;
   statusCode: number;
   req: Request<unknown>;
   res: Response;
@@ -33,5 +33,5 @@ export type CreateSendAuthJWTOptions = Required<{
 
 export interface AuthJWTPayload extends JwtPayload {
   id: string;
-  accountType: "Employee" | "Organization";
+  accountType: "Employee" | "Workplace";
 }

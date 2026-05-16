@@ -11,8 +11,8 @@ const deviceSessionSchema = new Schema(
     },
     userType: {
       type: String,
-      required: [true, "Please specify the account type ('Employee' or 'Organization')"],
-      enum: ["Employee", "Organization"],
+      required: [true, "Please specify the account type ('Employee' or 'Workplace')"],
+      enum: ["Employee", "Workplace"],
     },
     tokenHash: {
       type: String,

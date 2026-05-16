@@ -43,13 +43,13 @@ export const subscribeToPublicSSE = (req: Request, res: Response) => {
 };
 
 export const startSSE = (req: RequestWithUser, res: Response) => {
-  const { organization } = req.user as EmployeeDocument;
-  if (!organization)
+  const { workplace } = req.user as EmployeeDocument;
+  if (!workplace)
     return res
       .status(403)
       .json({ status: "fail", error: "Only onboarded employees may receive survey updates" });
 
-  const orgId = organization._id.toString();
+  const orgId = workplace._id.toString();
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");

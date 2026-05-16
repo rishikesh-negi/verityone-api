@@ -42,8 +42,8 @@ export const employeeSignupSchema = z.object({
 });
 export type EmployeeSignupData = z.infer<typeof employeeSignupSchema>;
 
-export const organizationSignupSchema = z.object({
-  name: z
+export const workplaceSignupSchema = z.object({
+  organizationName: z
     .string()
     .trim()
     .min(2, { error: "Too short. Minimum 2 letters expected" })
@@ -69,10 +69,10 @@ export const organizationSignupSchema = z.object({
     .min(4, "Invalid country name")
     .max(32, "Please provide the commonly used or shortened name of your country"),
 });
-export type OrganizationSignupData = z.infer<typeof organizationSignupSchema>;
+export type WorkplaceSignupData = z.infer<typeof workplaceSignupSchema>;
 
 export const signupRequestSchema = z.object({
-  body: z.union([employeeSignupSchema, organizationSignupSchema]),
+  body: z.union([employeeSignupSchema, workplaceSignupSchema]),
 });
 export type SignupData = z.infer<typeof signupRequestSchema>;
 

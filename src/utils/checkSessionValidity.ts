@@ -2,7 +2,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import { DeviceSession } from "../models/deviceSessionModel.js";
 import type { EmployeeDocument } from "../models/employeeModel.js";
-import type { OrganizationDocument } from "../models/organizationModel.js";
+import type { WorkplaceDocument } from "../models/workplaceModel.js";
 import { verifyAuthJWT } from "./jwt.js";
 
 export async function checkSessionValidity(refreshToken: string): Promise<boolean> {
@@ -12,7 +12,7 @@ export async function checkSessionValidity(refreshToken: string): Promise<boolea
     !accountType ||
     !decoded.iat ||
     !decoded.exp ||
-    (accountType !== "Employee" && accountType !== "Organization")
+    (accountType !== "Employee" && accountType !== "Workplace")
   ) {
     await DeviceSession.deleteMany({ userId: new mongoose.Types.ObjectId(id) });
     return false;
@@ -23,7 +23,7 @@ export async function checkSessionValidity(refreshToken: string): Promise<boolea
   const session = await DeviceSession.findOne({ userId, tokenHash });
   const user = (await mongoose.model(accountType).findById(userId).setOptions({
     includeUnverified: true,
-  })) as EmployeeDocument | OrganizationDocument;
+  })) as EmployeeDocument | WorkplaceDocument;
 
   if (!session || !user) {
     // Possible token theft or reuse attack, so log the user out of all devices and return false to signal the route handler to clear the http-only refresh token cookie on the client:

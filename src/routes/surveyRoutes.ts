@@ -10,7 +10,7 @@ router.use(protect);
 
 router.post(
   "/create",
-  restrictTo("Organization"),
+  restrictTo("Workplace"),
   validateRequest(surveyCreationRequestSchema) as RequestHandler,
   createSurvey,
 );

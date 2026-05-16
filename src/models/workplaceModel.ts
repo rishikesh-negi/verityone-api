@@ -16,17 +16,17 @@ import {
   usernameValidator,
 } from "../utils/stringValidators.js";
 
-const organizationSchema = new Schema(
+const workplaceSchema = new Schema(
   {
-    userType: { type: String, default: "Organization", enum: ["Organization"], immutable: true },
-    name: {
+    userType: { type: String, default: "Workplace", enum: ["Workplace"], immutable: true },
+    organizationName: {
       type: String,
       trim: true,
-      required: [true, "Please provide the name of the organization to create an account"],
+      required: [true, "Please provide the name of the workplace to create an account"],
       validate: {
         validator: organizationNameValidator,
         message:
-          "Organization name can contain: letters (at least one required), numbers, apostrophes, hyphens, and periods (consecutive non-alphanumeric characters not allowed)",
+          "Workplace name can contain: letters (at least one required), numbers, apostrophes, hyphens, and periods (consecutive non-alphanumeric characters not allowed)",
       },
       minLength: [2, "The name must contain at least 2 characters"],
       maxLength: [50, "The name cannot exceed 50 characters"],
@@ -112,37 +112,36 @@ const organizationSchema = new Schema(
   },
 );
 
-organizationSchema.pre("save", hashPasswordPreSave);
-organizationSchema.pre("save", setPasswordChangeTimestampPreSave);
-organizationSchema.pre("save", function () {
-  this.slug = slugify.default(this.name, {
+workplaceSchema.pre("save", hashPasswordPreSave);
+workplaceSchema.pre("save", setPasswordChangeTimestampPreSave);
+workplaceSchema.pre("save", function () {
+  this.slug = slugify.default(this.organizationName, {
     lower: true,
     trim: true,
     strict: true,
     remove: /[!@#$%^&*()=+;:'",<.>/|?`~]/g,
   });
 
-  if (this.userType === "Organization" || this.userType === undefined) return;
-  this.set("userType", "Organization");
+  if (this.userType === "Workplace" || this.userType === undefined) return;
+  this.set("userType", "Workplace");
 });
 
-organizationSchema.pre(/^find/, async function (this: Query<unknown, IOrganization>) {
+workplaceSchema.pre(/^find/, async function (this: Query<unknown, IWorkplace>) {
   if (this.getOptions()["includeInactive"]) return;
   this.where({ active: { $ne: false } });
 });
 
-organizationSchema.pre(/^find/, async function (this: Query<unknown, IOrganization>) {
+workplaceSchema.pre(/^find/, async function (this: Query<unknown, IWorkplace>) {
   if (this.getOptions()["includeUnverified"]) return;
   this.where({ emailIsVerified: { $ne: false } });
 });
 
-organizationSchema.methods["matchPasswords"] = matchPasswords;
-organizationSchema.methods["changedPasswordAfter"] = changedPasswordAfter;
-organizationSchema.methods["createPasswordResetToken"] = createPaswordResetToken;
+workplaceSchema.methods["matchPasswords"] = matchPasswords;
+workplaceSchema.methods["changedPasswordAfter"] = changedPasswordAfter;
+workplaceSchema.methods["createPasswordResetToken"] = createPaswordResetToken;
 
-export type IOrganizationSchema = InferSchemaType<typeof organizationSchema>;
-export type IOrganization = IOrganizationSchema &
-  PasswordManagementSchemaMethods<IOrganizationSchema>;
-export type OrganizationDocument = HydratedDocument<IOrganization>;
+export type IWorkplaceSchema = InferSchemaType<typeof workplaceSchema>;
+export type IWorkplace = IWorkplaceSchema & PasswordManagementSchemaMethods<IWorkplaceSchema>;
+export type WorkplaceDocument = HydratedDocument<IWorkplace>;
 
-export const Organization = model<IOrganization>("Organization", organizationSchema);
+export const Workplace = model<IWorkplace>("Workplace", workplaceSchema);

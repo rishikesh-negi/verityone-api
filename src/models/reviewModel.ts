@@ -7,10 +7,10 @@ const reviewSchema = new Schema({
     ref: "UserIdentityVault",
     index: true,
   },
-  organization: {
+  workplace: {
     type: Schema.Types.ObjectId,
-    ref: "Organization",
-    required: [true, "A review must be for an organization"],
+    ref: "Workplace",
+    required: [true, "A review must be for an workplace"],
   },
   rating: {
     type: Number,
@@ -28,11 +28,11 @@ const reviewSchema = new Schema({
   createdAt: { type: Date, default: Date.now(), select: false, immutable: true },
 });
 
-reviewSchema.index({ organization: 1, anonymousId: 1 }, { unique: true });
+reviewSchema.index({ workplace: 1, anonymousId: 1 }, { unique: true });
 
 reviewSchema.pre(/^find/, async function (this: Query<unknown, IReview>) {
   this.populate({
-    path: "organization",
+    path: "workplace",
     select: "name city",
   });
 });

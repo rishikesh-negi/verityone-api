@@ -10,7 +10,7 @@ import {
 } from "../errors/AppError.js";
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
 import { OnboardingInvite } from "../models/onboardingInviteModel.js";
-import { Organization } from "../models/organizationModel.js";
+import { Workplace } from "../models/workplaceModel.js";
 import type { RequestWithUser } from "../types/types.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
 import { INVITE_VALIDITY_SECONDS, ORG_FIELDS_TO_POPULATE } from "../utils/constants.js";
@@ -22,17 +22,13 @@ export const createInvite = catchAsyncError(
 
     const employee = await Employee.findById(employeeId);
     if (!employee) return next(new NotFoundError("Employee not found"));
-    if (employee.organization !== null)
+    if (employee.workplace !== null)
       return next(
-        new AppError(
-          "Employee was onboarded by another organization",
-          403,
-          "employee-not-available",
-        ),
+        new AppError("Employee was onboarded by another workplace", 403, "employee-not-available"),
       );
 
     const existingInvite = await OnboardingInvite.findOne({
-      organization: req.user!.id,
+      workplace: req.user!.id,
       employee: employeeId,
     })
       .setOptions({ includeAllInvites: true })
@@ -51,7 +47,7 @@ export const createInvite = catchAsyncError(
       );
     }
 
-    await OnboardingInvite.create({ organization: req.user!.id, employee: employeeId });
+    await OnboardingInvite.create({ workplace: req.user!.id, employee: employeeId });
     return res.status(201).json({
       status: "success",
       message: `Invite sent to ${employee.firstName}`,
@@ -67,14 +63,14 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
   if (!invite) return next(new NotFoundError("Invite not found"));
   if (req.user!.id !== invite.employee.toString()) return next(new UnauthorizedAccessError());
 
-  const organizationExists = await Organization.exists({ _id: invite.organization, active: true });
-  if (!organizationExists) {
+  const workplaceExists = await Workplace.exists({ _id: invite.workplace, active: true });
+  if (!workplaceExists) {
     invite.status = "orphaned";
     await invite.save();
-    return next(new AppError("Organization not found or no longer exists", 404, "org-not-found"));
+    return next(new AppError("Workplace not found or no longer exists", 404, "org-not-found"));
   }
 
-  (req.user as EmployeeDocument).organization = invite.organization;
+  (req.user as EmployeeDocument).workplace = invite.workplace;
   invite.status = "accepted";
 
   const session = await mongoose.startSession();
@@ -82,7 +78,7 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
   try {
     req.user = await req.user!.save({ session });
     req.user = await (req.user as EmployeeDocument).populate({
-      path: "organization",
+      path: "workplace",
       select: ORG_FIELDS_TO_POPULATE,
       options: { session },
     });

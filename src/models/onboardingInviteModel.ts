@@ -3,7 +3,7 @@ import { INVITE_VALIDITY_SECONDS } from "../utils/constants.js";
 
 const onboardingInviteSchema = new Schema(
   {
-    organization: { type: Schema.Types.ObjectId, ref: "Organization", required: true },
+    workplace: { type: Schema.Types.ObjectId, ref: "Workplace", required: true },
     employee: { type: Schema.Types.ObjectId, ref: "Employee", required: true },
     status: {
       type: String,
@@ -27,7 +27,7 @@ onboardingInviteSchema.pre(/^find/, async function (this: Query<unknown, IOnboar
   this.where({ status: "pending" });
 });
 
-onboardingInviteSchema.index({ organization: 1, employee: 1 }, { unique: true });
+onboardingInviteSchema.index({ workplace: 1, employee: 1 }, { unique: true });
 
 type IOnboardingInvite = InferSchemaType<typeof onboardingInviteSchema>;
 

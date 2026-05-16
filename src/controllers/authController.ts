@@ -21,7 +21,7 @@ import {
 } from "../errors/AppError.js";
 import { DeviceSession } from "../models/deviceSessionModel.js";
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
-import { Organization, type OrganizationDocument } from "../models/organizationModel.js";
+import { Workplace, type WorkplaceDocument } from "../models/workplaceModel.js";
 import { UserAccountsRegistry } from "../models/userAccountsRegistryModel.js";
 import type { AuthJWTPayload, RequestWithUser } from "../types/types.js";
 import { authenticateUser } from "../utils/authenticateUser.js";
@@ -33,7 +33,7 @@ import { verifyAuthJWT } from "../utils/jwt.js";
 
 export const signup = catchAsyncError(async (req, res, next) => {
   const accountType =
-    "firstName" in req.body ? "Employee" : "name" in req.body ? "Organization" : null;
+    "firstName" in req.body ? "Employee" : "name" in req.body ? "Workplace" : null;
 
   if (!accountType) return next(new InvalidSignupDataError());
 
@@ -47,7 +47,7 @@ export const signup = catchAsyncError(async (req, res, next) => {
   try {
     const [newUser] = (await mongoose.model(accountType).create([req.body], { session })) as
       | EmployeeDocument[]
-      | OrganizationDocument[];
+      | WorkplaceDocument[];
     if (!newUser) throw new Error();
 
     await UserAccountsRegistry.create(
@@ -87,7 +87,7 @@ export const login = catchAsyncError(async function (req, res, next) {
       const { id, accountType } = await verifyAuthJWT(refreshToken, "refresh");
       const user = (await mongoose.model(accountType).findOne({ _id: id }).setOptions({
         includeUnverified: true,
-      })) as EmployeeDocument | OrganizationDocument;
+      })) as EmployeeDocument | WorkplaceDocument;
       const jwtPayload: AuthJWTPayload = { id, accountType };
       return authenticateUser({ req, res, jwtPayload, user, authAction: "login" });
     }
@@ -99,14 +99,14 @@ export const login = catchAsyncError(async function (req, res, next) {
   const user = (
     await Promise.allSettled([
       Employee.findOne({ $or: [{ email }, { username }] }).select("+password"),
-      Organization.findOne({ $or: [{ email }, { username }] }).select("+password"),
+      Workplace.findOne({ $or: [{ email }, { username }] }).select("+password"),
     ])
   ).filter((result) => result.status === "fulfilled")?.[0]?.value;
 
   const passwordsMatched = await user?.matchPasswords(password, user?.password || "");
   if (!user || !passwordsMatched) return next(new InvalidCredentialsError());
 
-  const accountType = "firstName" in user ? "Employee" : "Organization";
+  const accountType = "firstName" in user ? "Employee" : "Workplace";
   const jwtPayload: AuthJWTPayload = { id: user.id, accountType };
   return await authenticateUser({ req, res, jwtPayload, user, authAction: "login" });
 });
@@ -123,7 +123,7 @@ export const protect = catchAsyncError(async function (req, res, next) {
     !accountType ||
     !decoded.iat ||
     !decoded.exp ||
-    (accountType !== "Employee" && accountType !== "Organization")
+    (accountType !== "Employee" && accountType !== "Workplace")
   )
     return next(new InvalidTokenError());
 
@@ -131,7 +131,7 @@ export const protect = catchAsyncError(async function (req, res, next) {
 
   const userId = new mongoose.Types.ObjectId(id);
   const UserModel = mongoose.model(accountType);
-  const sessionUser = (await UserModel.findById(userId)) as EmployeeDocument | OrganizationDocument;
+  const sessionUser = (await UserModel.findById(userId)) as EmployeeDocument | WorkplaceDocument;
 
   if (!sessionUser) return next(new UserNotFoundError());
   if (!sessionUser.emailIsVerified) {
@@ -163,11 +163,11 @@ export const verifyEmailAddress = catchAsyncError(async function (req, res, next
   const user = (
     await Promise.allSettled([
       Employee.findOne({ emailVerificationToken }),
-      Organization.findOne({ emailVerificationToken }),
+      Workplace.findOne({ emailVerificationToken }),
     ])
   ).filter((result) => result.status === "fulfilled")?.[0]?.value as
     | EmployeeDocument
-    | OrganizationDocument;
+    | WorkplaceDocument;
 
   if (!user) return next(new InvalidEmailVerificationToken());
 
@@ -192,7 +192,7 @@ export const restrictToVerified = catchAsyncError(async function (req, _res, nex
 });
 
 export const restrictTo =
-  (role: "Employee" | "Organization") =>
+  (role: "Employee" | "Workplace") =>
   (req: RequestWithUser, _res: Response, next: NextFunction) => {
     if (role !== req.user?.userType) return next(new ForbiddebAccessError());
     next();

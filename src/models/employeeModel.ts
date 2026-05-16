@@ -69,9 +69,9 @@ const employeeSchema = new Schema(
     emailVerificationToken: String,
     emailVerificationExpires: Date,
     emailIsVerified: { type: Boolean, default: false },
-    organization: {
+    workplace: {
       type: Schema.Types.ObjectId,
-      ref: "Organization",
+      ref: "Workplace",
       default: null,
       index: true,
     },
@@ -114,7 +114,7 @@ employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
 
 employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
   this.populate({
-    path: "organization",
+    path: "workplace",
     select: ORG_FIELDS_TO_POPULATE,
   });
 });

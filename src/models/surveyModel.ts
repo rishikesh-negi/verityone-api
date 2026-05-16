@@ -9,10 +9,10 @@ import { SURVEY_DURATION_DAYS_OPTIONS } from "../utils/constants.js";
 
 const surveySchema = new Schema(
   {
-    organization: {
+    workplace: {
       type: Schema.Types.ObjectId,
-      ref: "Organization",
-      required: [true, "A survey must belong to an organization"],
+      ref: "Workplace",
+      required: [true, "A survey must belong to an workplace"],
       index: true,
     },
     questions: {

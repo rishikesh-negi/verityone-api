@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import { DeviceSession } from "../models/deviceSessionModel.js";
 import type { EmployeeDocument } from "../models/employeeModel.js";
-import type { OrganizationDocument } from "../models/organizationModel.js";
+import type { WorkplaceDocument } from "../models/workplaceModel.js";
 import type { AuthJWTPayload } from "../types/types.js";
 import { REFRESH_JWT_COOKIE_NAME } from "./constants.js";
 import Email from "./email.js";
@@ -14,7 +14,7 @@ export type AuthenticatorFunctionParams = {
   req: Request;
   res: Response;
   jwtPayload: AuthJWTPayload;
-  user: EmployeeDocument | OrganizationDocument;
+  user: EmployeeDocument | WorkplaceDocument;
   authAction: "signup" | "login";
 };
 
@@ -28,12 +28,12 @@ export async function authenticateUser(authParams: AuthenticatorFunctionParams) 
   const ipAddress = req.ip;
   const resStatusCode = authAction === "login" ? 200 : 201;
 
-  const organization =
+  const workplace =
     authAction === "login" &&
-    ((accountType === "Organization" && user.id) ||
-      (accountType === "Employee" && (user as EmployeeDocument).organization));
-  const ongoingSurvey = organization
-    ? await Survey.findOne({ organization, hasConcluded: false }).lean()
+    ((accountType === "Workplace" && user.id) ||
+      (accountType === "Employee" && (user as EmployeeDocument).workplace));
+  const ongoingSurvey = workplace
+    ? await Survey.findOne({ workplace, hasConcluded: false }).lean()
     : null;
 
   await DeviceSession.create({

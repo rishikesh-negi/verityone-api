@@ -15,7 +15,7 @@ router.use(protect);
 
 router.post(
   "/onboard/:employeeId",
-  restrictTo("Organization"),
+  restrictTo("Workplace"),
   validateRequest(inviteSchema, new BadRequestError()) as RequestHandler,
   createInvite,
 );
