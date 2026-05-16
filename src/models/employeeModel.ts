@@ -14,7 +14,7 @@ import {
   passwordValidator,
   usernameValidator,
 } from "../utils/stringValidators.js";
-import { ORG_FIELDS_TO_POPULATE } from "../utils/constants.js";
+import { WORKPLACE_FIELDS_TO_POPULATE } from "../utils/constants.js";
 
 const employeeSchema = new Schema(
   {
@@ -115,7 +115,7 @@ employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
 employeeSchema.pre(/^find/, async function (this: Query<unknown, IEmployee>) {
   this.populate({
     path: "workplace",
-    select: ORG_FIELDS_TO_POPULATE,
+    select: WORKPLACE_FIELDS_TO_POPULATE,
   });
 });
 
