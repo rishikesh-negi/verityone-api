@@ -9,7 +9,7 @@ import {
 } from "../errors/AppError.js";
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
 import { OnboardingInvite } from "../models/onboardingInviteModel.js";
-import { Workplace } from "../models/workplaceModel.js";
+import { Workplace, type WorkplaceDocument } from "../models/workplaceModel.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
 import { INVITE_VALIDITY_SECONDS, WORKPLACE_FIELDS_TO_POPULATE } from "../utils/constants.js";
 
@@ -51,9 +51,34 @@ export const createInvite = catchAsyncError(async (req, res, next) => {
   });
 });
 
+export const getAllSentInvites = catchAsyncError(async (req, res, next) => {
+  const sentInvites = await OnboardingInvite.find({
+    workplace: (req.user as WorkplaceDocument).id,
+  });
+  if (!sentInvites)
+    return next(new UnprocessableContentError("Failed to retrieve onboarding invites"));
+
+  return res.status(200).json({
+    status: "success",
+    sentInvites,
+  });
+});
+
+export const retractInvite = catchAsyncError(async (req, res, next) => {
+  const { inviteId } = req.params;
+  if (!inviteId) return next(new UnprocessableContentError("Invalid invite ID received"));
+
+  const invite = await OnboardingInvite.findById(inviteId);
+  if (!invite) return next(new NotFoundError("Invite not found"));
+
+  invite.status = "retracted";
+  invite.save();
+  return res.sendStatus(204);
+});
+
 export const getEmployeeInvites = catchAsyncError(async (req, res, next) => {
-  const invites = await OnboardingInvite.find({ employee: req.user!.id });
-  if (!invites) return next(new UnprocessableContentError("Failed to retrieve onboarding invites"));
+  const invites = await OnboardingInvite.find({ employee: req.user!.id, status: "pending" });
+  if (!invites) return next(new AppError("Failed to retrieve onboarding invites", 500));
 
   return res.status(200).json({ status: "success", invites });
 });
