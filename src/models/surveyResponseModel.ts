@@ -55,6 +55,6 @@ const surveyResponseSchema = new Schema(
 
 surveyResponseSchema.index({ anonymousId: 1, survey: 1 }, { unique: true });
 
-export type ISurveyResponseSchema = InferSchemaType<typeof surveyResponseSchema>;
+export type ISurveyResponse = InferSchemaType<typeof surveyResponseSchema>;
 
-export const SurveyResponse = model<ISurveyResponseSchema>("SurveyResponse", surveyResponseSchema);
+export const SurveyResponse = model<ISurveyResponse>("SurveyResponse", surveyResponseSchema);
