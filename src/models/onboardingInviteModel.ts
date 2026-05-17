@@ -8,7 +8,7 @@ const onboardingInviteSchema = new Schema(
     status: {
       type: String,
       required: true,
-      enum: ["pending", "accepted", "rejected", "orphaned"],
+      enum: ["pending", "accepted", "rejected", "retracted", "orphaned"],
       default: "pending",
     },
     createdAt: {
@@ -24,7 +24,7 @@ const onboardingInviteSchema = new Schema(
 
 onboardingInviteSchema.pre(/^find/, async function (this: Query<unknown, IOnboardingInvite>) {
   if (this.getOptions()["includeAllInvites"]) return;
-  this.where({ status: "pending" });
+  this.where({ status: { $nin: ["retracted", "orphaned"] } });
 });
 
 onboardingInviteSchema.index({ workplace: 1, employee: 1 }, { unique: true });
