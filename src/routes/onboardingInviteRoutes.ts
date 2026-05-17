@@ -3,6 +3,7 @@ import { protect, restrictTo } from "../controllers/authController.js";
 import {
   acceptInvite,
   createInvite,
+  getAllSentInvites,
   getEmployeeInvites,
   rejectInvite,
 } from "../controllers/onboardingInviteController.js";
@@ -17,8 +18,10 @@ const router = Router();
 
 router.use(protect);
 
+router.get("/sent", restrictTo("Workplace"), getAllSentInvites);
+
 router.post(
-  "/onboard/:employeeId",
+  "/send/:employeeId",
   restrictTo("Workplace"),
   validateRequest(inviteCreationRequestSchema, new BadRequestError()) as RequestHandler,
   createInvite,
