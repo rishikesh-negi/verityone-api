@@ -1,7 +1,13 @@
+export type CruxRatingOptions = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+
 export type SurveyQuestion = {
   metric: string;
   crux: string;
   question: string;
+};
+
+export type SurveyAnswer = Omit<SurveyQuestion, "question"> & {
+  answer: CruxRatingOptions;
 };
 
 export const surveyQuestions: SurveyQuestion[] = [
@@ -324,3 +330,22 @@ export const surveyQuestions: SurveyQuestion[] = [
 export const surveyMetrics = [...new Set(surveyQuestions.map((q) => q.metric))];
 export const surveyCruxes = surveyQuestions.map((q) => q.crux);
 export const numQuestions = surveyQuestions.length;
+
+export const generateRemarkForCruxes = (
+  cruxesWithScores: Record<
+    string,
+    {
+      metric: string;
+      crux: string;
+      score: number;
+    } & { [K: string]: unknown }
+  >,
+) => {
+  Object.values(cruxesWithScores).forEach(cruxScore => {
+    if (cruxScore.crux === "unfair-discrimination") {
+      switch() {
+        case(1 > 2) return true
+      }
+    }
+  })
+};
