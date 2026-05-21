@@ -15,7 +15,7 @@ export const surveyQuestions: SurveyQuestion[] = [
     metric: "social-harmony",
     crux: "unfair-discrimination",
     question:
-      "Rate how often employees experience unfair discrimination from colleagues or superiors at work.",
+      "Rate the extent to which your colleagues and managers foster a workplace free from unfair discrimination.",
   },
   {
     metric: "social-harmony",
@@ -331,7 +331,7 @@ export const surveyMetrics = [...new Set(surveyQuestions.map((q) => q.metric))];
 export const surveyCruxes = surveyQuestions.map((q) => q.crux);
 export const numQuestions = surveyQuestions.length;
 
-export const generateRemarkForCruxes = (
+export const generateRemarksForCruxes = (
   cruxesWithScores: Record<
     string,
     {
@@ -341,11 +341,95 @@ export const generateRemarkForCruxes = (
     } & { [K: string]: unknown }
   >,
 ) => {
-  Object.values(cruxesWithScores).forEach(cruxScore => {
-    if (cruxScore.crux === "unfair-discrimination") {
-      switch() {
-        case(1 > 2) return true
+  Object.values(cruxesWithScores).forEach((cruxResult) => {
+    if (cruxResult.crux === "unfair-discrimination") {
+      switch (true) {
+        case cruxResult.score <= 2:
+          cruxResult["remark"] = "Very poor";
+          cruxResult["suggestions"] =
+            "This score points to a severe breakdown in workplace safety and inclusivity, indicating that unfair discrimination is actively harming your workforce. Leadership must intervene immediately by conducting external, confidential audits and enforcing a zero-tolerance policy. Team building exercises could prove effective in uprooting personal differences or grudges. Addressing this right away is critical to stop toxic behavior, protect your employees' mental well-being, foster an amicable workplace environment, and prevent costly legal liabilities or a total collapse in talent retention.";
+          break;
+        case cruxResult.score <= 4:
+          cruxResult["remark"] = "Poor";
+          cruxResult["suggestions"] =
+            "This score highlights significant gaps in fairness, suggesting that bias or discriminatory behavior is noticeably affecting the daily employee experience to a great extent. Leadership needs to implement mandatory, actionable anti-bias training while establishing clear, safe reporting channels. Rooting out these shortcomings will rebuild trust, make employees feel valued, and significantly reduce the turnover and burnout caused by an unsupportive environment.";
+          break;
+        case cruxResult.score <= 6:
+          cruxResult["remark"] = "Satisfactory";
+          cruxResult["suggestions"] =
+            'While the workplace is baseline compliant, a mediocre score here shows that subtle biases, passive-aggressive interactions, or microaggressions are likely keeping the environment from being truly amicable and supportive. Actively leveling up by hosting open-door feedback forums and reviewing promotion fairness will transform the culture from just "tolerable" to genuinely supportive. This proactive push will boost overall team morale, spark greater collaboration, and help employees fully engage with their work.';
+          break;
+        case cruxResult.score <= 8:
+          cruxResult["remark"] = "Good";
+          cruxResult["suggestions"] =
+            "The workplace is doing well in preventing discrimination, but there is still room to fine-tune the culture. Leadership could optionally consider introducing voluntary mentorship programs, employee-led team coordination exercises, etc., to further strengthen community bonds. These extra steps can elevate a healthy workplace into a highly attractive, premium environment for top-tier talent.";
+          break;
+        case cruxResult.score <= 10:
+          cruxResult["remark"] = "Excellent";
+          cruxResult["suggestions"] =
+            "An outstanding score here proves that your managers and teams have successfully built a safe, equitable, and deeply respectful culture. Leadership should maintain the status quo and keep up the great work by continuing to champion these exact values in everyday operations. Your current approach is a major asset for retaining your best people—keep doing exactly what you are doing.";
+          break;
       }
     }
-  })
+
+    if (cruxResult.crux === "workplace-isolation") {
+      switch (true) {
+        case cruxResult.score <= 2:
+          cruxResult["remark"] = "Very poor";
+          cruxResult["suggestions"] =
+            "This score signals a severe crisis, meaning employees feel deeply cut off and invisible to their teams and managers. Leadership must treat this with absolute urgency and immediately establish mandatory one-on-one check-ins and structured team touchpoints. Recreational team-building activities are highly advised. Breaking through this extreme isolation right away will rescue plummeting morale, protect employee mental health, and prevent a wave of sudden resignations.";
+          break;
+        case cruxResult.score <= 4:
+          cruxResult["remark"] = "Poor";
+          cruxResult["suggestions"] =
+            "This score shows noticeable gaps in workplace connection, indicating that a lack of communication or fragmented remote/hybrid setups are leaving employees out in the cold. Leadership should introduce regular team syncs and clear communication guidelines to bridge these gaps. Actively fixing these shortcomings will rebuild team cohesion, reduce the anxiety of working in a vacuum, and noticeably improve talent retention.";
+          break;
+        case cruxResult.score <= 6:
+          cruxResult["remark"] = "Satisfactory";
+          cruxResult["suggestions"] =
+            "While employees aren't entirely stranded, communication is likely purely transactional, leaving them feeling only loosely tied to the organization. Intentionally improving this aspect by organizing cross-functional projects or casual virtual coffee chats will strengthen professional relationships. Stepping up connection here will unlock better collaboration, make people feel like they belong, and boost overall job satisfaction.";
+          break;
+        case cruxResult.score <= 8:
+          cruxResult["remark"] = "Good";
+          cruxResult["suggestions"] =
+            "The workplace has a healthy level of connection, but leadership could optionally introduce a few creative tweaks to make it even better. For instance, you might consider setting up voluntary peer-buddy systems for new hires or hosting occasional informal team-building events. These optional actions can further solidify work friendships and turn a good environment into an incredibly sticky one for top performers.";
+          break;
+        case cruxResult.score <= 10:
+          cruxResult["remark"] = "Excellent";
+          cruxResult["suggestions"] =
+            "An outstanding score here proves your workplace is a highly connected community where employees feel deeply supported and included by peers and superiors alike. Leadership should maintain the status quo, protect the open culture you have built, and keep it up. Your current approach is highly effective at making people feel valued and keeping talent from looking elsewhere.";
+          break;
+      }
+    }
+
+    if (cruxResult.crux === "fair-equal-treatment") {
+      switch (true) {
+        case cruxResult.score <= 2:
+          cruxResult["remark"] = "Very poor";
+          cruxResult["suggestions"] =
+            "This score indicates a critical crisis where favoritism, bias, or glaring inequality are deeply entrenched in the daily workplace experience. Leadership must treat this with immediate urgency by launching an independent review of internal practices and standardizing how promotions, workloads, and disciplinary actions are handled. Correcting these severe flaws right away is vital to stop rapidly spreading resentment, avoid legal risks, and halt a costly mass exodus of talent.";
+          break;
+        case cruxResult.score <= 4:
+          cruxResult["remark"] = "Poor";
+          cruxResult["suggestions"] =
+            "A score in this range highlights significant shortcomings, showing that employees widely perceive inconsistencies and unfairness in how people are treated. Leadership needs to establish transparent guidelines for performance evaluations and ensure objective metrics are used across all teams. Remedying these gaps will restore broken trust, boost lagging morale, and significantly improve talent retention by showing the team that hard work—not politics—matters.";
+          break;
+        case cruxResult.score <= 6:
+          cruxResult["remark"] = "Satisfactory";
+          cruxResult["suggestions"] =
+            "While there are no blatant violations, a mediocre score here suggests that subtle biases or inconsistent management styles are keeping the playing field from being truly level. Improving this aspect by introducing regular, standardized check-ins and objective criteria for workplace rewards will make the environment noticeably fairer. Elevating your equity practices here will unlock higher motivation, foster healthier collaboration, and increase overall job satisfaction.";
+          break;
+        case cruxResult.score <= 8:
+          cruxResult["remark"] = "Good";
+          cruxResult["suggestions"] =
+            "The organization generally does a good job of maintaining fairness, but there are optional steps that could refine the experience even further. Leadership might consider offering voluntary leadership workshops focused on objective decision-making, or creating an employee advisory panel to regularly review internal policies. These extra steps can help polish a good culture into an industry-leading standard for fairness.";
+          break;
+        case cruxResult.score <= 10:
+          cruxResult["remark"] = "Excellent";
+          cruxResult["suggestions"] =
+            "An outstanding score demonstrates that your workplace has successfully built a deeply rooted culture of genuine equality and respect across all levels of the hierarchy. Leadership should maintain the status quo, continue reinforcing these transparent practices, and keep up the fantastic work. Your commitment to fairness is a massive competitive advantage for retaining your best people and attracting top-tier talent.";
+          break;
+      }
+    }
+  });
 };
