@@ -1,1389 +1,634 @@
-export const generateRemarksForCruxes = (
+const cruxSuggestionsLookupTable = {
+  "unfair-discrimination": {
+    critical:
+      "This score points to a severe breakdown in workplace safety and inclusivity, indicating that unfair discrimination is actively harming your workforce. Leadership must intervene immediately by conducting external, confidential audits and enforcing a zero-tolerance policy. Team building exercises could prove effective in uprooting personal differences or grudges. Addressing this right away is critical to stop toxic behavior, protect your employees' mental well-being, foster an amicable workplace environment, and prevent costly legal liabilities or a total collapse in talent retention.",
+    poor: "This score highlights significant gaps in fairness, suggesting that bias or discriminatory behavior is noticeably affecting the daily employee experience to a great extent. Leadership needs to implement mandatory, actionable anti-bias training while establishing clear, safe reporting channels. Rooting out these shortcomings will rebuild trust, make employees feel valued, and significantly reduce the turnover and burnout caused by an unsupportive environment.",
+    satisfactory:
+      'While the workplace is baseline compliant, a mediocre score here shows that subtle biases, passive-aggressive interactions, or microaggressions are likely keeping the environment from being truly amicable and supportive. Actively leveling up by hosting open-door feedback forums and reviewing promotion fairness will transform the culture from just "tolerable" to genuinely supportive. This proactive push will boost overall team morale, spark greater collaboration, and help employees fully engage with their work.',
+    good: "The workplace is doing well in preventing discrimination, but there is still room to fine-tune the culture. Leadership could optionally consider introducing voluntary mentorship programs, employee-led team coordination exercises, etc., to further strengthen community bonds. These extra steps can elevate a healthy workplace into a highly attractive, premium environment for top-tier talent.",
+    excellent:
+      "An outstanding score here proves that your managers and teams have successfully built a safe, equitable, and deeply respectful culture. Leadership should maintain the status quo and keep up the great work by continuing to champion these exact values in everyday operations. Your current approach is a major asset for retaining your best people—keep doing exactly what you are doing.",
+  },
+
+  "workplace-isolation": {
+    critical:
+      "This score signals a severe crisis, meaning employees feel deeply cut off and invisible to their teams and managers. Leadership must treat this with absolute urgency and immediately establish mandatory one-on-one check-ins and structured team touchpoints. Recreational team-building activities are highly advised. Breaking through this extreme isolation right away will rescue plummeting morale, protect employee mental health, and prevent a wave of sudden resignations.",
+    poor: "This score shows noticeable gaps in workplace connection, indicating that a lack of communication or fragmented remote/hybrid setups are leaving employees out in the cold. Leadership should introduce regular team syncs and clear communication guidelines to bridge these gaps. Actively fixing these shortcomings will rebuild team cohesion, reduce the anxiety of working in a vacuum, and noticeably improve talent retention.",
+    satisfactory:
+      "While employees aren't entirely stranded, communication is likely purely transactional, leaving them feeling only loosely tied to the organization. Intentionally improving this aspect by organizing cross-functional projects or casual virtual coffee chats will strengthen professional relationships. Stepping up connection here will unlock better collaboration, make people feel like they belong, and boost overall job satisfaction.",
+    good: "The workplace has a healthy level of connection, but leadership could optionally introduce a few creative tweaks to make it even better. For instance, you might consider setting up voluntary peer-buddy systems for new hires or hosting occasional informal team-building events. These optional actions can further solidify work friendships and turn a good environment into an incredibly sticky one for top performers.",
+    excellent:
+      "An outstanding score here proves your workplace is a highly connected community where employees feel deeply supported and included by peers and superiors alike. Leadership should maintain the status quo, protect the open culture you have built, and keep it up. Your current approach is highly effective at making people feel valued and keeping talent from looking elsewhere.",
+  },
+
+  "fair-equal-treatment": {
+    critical:
+      "This score indicates a critical crisis where favoritism, bias, or glaring inequality are deeply entrenched in the daily workplace experience. Leadership must treat this with immediate urgency by launching an independent review of internal practices and standardizing how promotions, workloads, and disciplinary actions are handled. Correcting these severe flaws right away is vital to stop rapidly spreading resentment, avoid legal risks, and halt a costly mass exodus of talent.",
+    poor: "A score in this range highlights significant shortcomings, showing that employees widely perceive inconsistencies and unfairness in how people are treated. Leadership needs to establish transparent guidelines for performance evaluations and ensure objective metrics are used across all teams. Remedying these gaps will restore broken trust, boost lagging morale, and significantly improve talent retention by showing the team that hard work—not politics—matters.",
+    satisfactory:
+      "While there are no blatant violations, a mediocre score here suggests that subtle biases or inconsistent management styles are keeping the playing field from being truly level. Improving this aspect by introducing regular, standardized check-ins and objective criteria for workplace rewards will make the environment noticeably fairer. Elevating your equity practices here will unlock higher motivation, foster healthier collaboration, and increase overall job satisfaction.",
+    good: "The organization generally does a good job of maintaining fairness, but there are optional steps that could refine the experience even further. Leadership might consider offering voluntary leadership workshops focused on objective decision-making, or creating an employee advisory panel to regularly review internal policies. These extra steps can help polish a good culture into an industry-leading standard for fairness.",
+    excellent:
+      "An outstanding score demonstrates that your workplace has successfully built a deeply rooted culture of genuine equality and respect across all levels of the hierarchy. Leadership should maintain the status quo, continue reinforcing these transparent practices, and keep up the fantastic work. Your commitment to fairness is a massive competitive advantage for retaining your best people and attracting top-tier talent.",
+  },
+
+  "office-politics-prevalence": {
+    critical:
+      "This score signals a severe crisis where toxic favoritism, backstabbing, and hidden agendas completely dominate the workplace culture. Leadership must act with absolute urgency to dismantle this environment by making all promotional tracks completely transparent and holding manipulative behaviors strictly accountable. Eradicating this severe issue immediately will rescue tanking morale, restore psychological safety, and stop a damaging drain of your best talent.",
+    poor: "This score points to significant shortcomings, indicating that employees feel they must navigate alliances and gossip rather than rely on hard work to get ahead. Leadership needs to address this by standardizing performance evaluations and clarifying decision-making processes so they cannot be bypassed by personal relationships. Eliminating these political roadblocks will rebuild trust in leadership, reduce workplace anxiety, and noticeably improve employee retention.",
+    satisfactory:
+      "While the environment isn't completely toxic, a mediocre score shows that behind-the-scenes maneuvering still influences daily operations and causes mild frustration. Actively improving this aspect by opening up direct lines of communication and ensuring leadership decisions are thoroughly explained to all teams will minimize the rumor mill. Taking these steps will level the playing field, boost overall job satisfaction, and allow teams to focus on actual performance rather than posturing.",
+    good: "The workplace is doing a good job of keeping political maneuvering to a minimum, allowing for a generally transparent environment. To fine-tune this, leadership could optionally consider introducing cross-departmental collaboration goals or voluntary workshops on constructive conflict resolution. These minor steps can further solidify team unity and ensure a healthy, cooperative culture remains the norm.",
+    excellent:
+      "An outstanding score here proves that you have successfully built a merit-based, transparent culture where work speaks for itself and office politics are virtually non-existent. Leadership should maintain the status quo, continue leading with openness, and keep up the great work. This clean, politics-free environment is a massive asset for employee well-being and a primary reason your top talent stays with the company.",
+  },
+
+  "office-politics-negative-impact": {
+    critical:
+      "This score indicates that office politics are severely damaging meritocracy, employee well-being, driving division, and eroding trust across the company. Leadership must intervene immediately by launching anonymous feedback channels, establishing strict behavioral guidelines, and clarifying exactly how major business decisions are made. Stopping this toxic impact right away is critical to prevent total burnout, rescue tanking morale, and halt an imminent wave of resignations.",
+    poor: "This score shows that political maneuvering is actively dragging down the workplace, making employees feel that personal connections matter more than performance. Leadership needs to introduce clear, standardized metrics for promotions and rewards to eliminate any perception of favoritism. Fixing these shortcomings will restore meritocracy, trust in management, reduce daily anxiety, and improve talent retention by leveling the playing field.",
+    satisfactory:
+      "While the environment is mostly stable, politics still occasionally disrupt focus, cause frustration, or mask individual contributions. Actively improving this aspect by hosting open Q&A sessions with leadership and sharing team goals transparently will clear the air. Making these proactive improvements will boost overall job satisfaction, foster cleaner collaboration, and ensure everyone feels valued for their actual work.",
+    good: "The workplace is doing a good job of keeping the harmful side of office politics at bay, allowing for a generally transparent atmosphere. To optimize this, leadership could optionally consider introducing cross-functional team projects to break down remaining silos or offering voluntary communication workshops. These minor steps can further strengthen company culture and keep the team aligned around shared goals.",
+    excellent:
+      "An outstanding score here proves your workplace is exceptionally resilient against political friction, creating a healthy, transparent, and merit-based environment. Leadership should maintain the status quo, protect these open communication practices, and keep up the great work. This strong shield against office politics is a massive asset that keeps your top talent engaged and loyal to the company.",
+  },
+
+  "managers-general-efficacy": {
+    critical:
+      "This score signals a severe leadership crisis, indicating that poor management is actively harming daily operations, confusing teams, and driving down performance. Leadership must act with absolute urgency by stepping in with immediate management interventions, conducting 360-degree reviews, and providing intensive performance coaching. Correcting these critical leadership flaws right away is vital to stop rapidly spreading frustration, rescue crashing productivity, and prevent widespread talent drain.",
+    poor: "The low score highlights significant shortcomings, showing that direct managers are missing the core skills needed to effectively guide, communicate with, or support their teams. Leadership needs to introduce structured management training programs that focus on clear goal-setting, empathy, and constructive feedback. Resolving these gaps will restore team confidence, reduce operational friction, and noticeably improve employee retention.",
+    satisfactory:
+      "While managers are keeping things functional, a mediocre score suggests they are operating mostly as task-assigners rather than effective leaders who inspire and develop their people. Actively improving this aspect by providing managers with advanced leadership workshops and better resources for tracking team milestones will bridge this gap. Elevating management skills here will boost overall team morale, spark higher engagement, and unlock greater project success.",
+    good: "Direct managers are doing a good job of leading their teams and keeping operations running smoothly, but there are optional steps to refine their impact. Leadership could consider offering voluntary mentorship matching for newer managers or supporting enrollment in external professional leadership networks. These extra steps can help polish strong managers into truly exceptional mentors, making the company even more attractive to top talent.",
+    excellent:
+      "The outstanding score demonstrates that your direct managers are highly effective leaders who consistently support, empower, and guide their teams to success. Leadership should maintain the status quo, continue trusting their management styles, and keep up the fantastic work. Having such a capable management tier is a major competitive advantage and a primary reason your best people stay with the organization.",
+  },
+
+  "managers-tasks-efficacy": {
+    critical:
+      "This score points to a severe breakdown in operational execution, meaning tasks are frequently missed, deadlines are completely unmanaged, and team productivity has collapsed. Leadership must intervene immediately by establishing strict daily tracking protocols, re-evaluating baseline project scopes, and training managers on basic workflow management. Fixing this operational emergency right away is critical to restore client trust, eliminate extreme team frustration, and prevent massive revenue and talent loss.",
+    poor: "A score in this range highlights noticeable shortcomings, indicating that bottlenecks, poor delegation, or a lack of clear accountability are consistently stalling project completion. Leadership needs to implement standardized project management tools and train managers on how to set clear, realistic deadlines. Resolving these coordination gaps will drastically reduce workplace stress, minimize chaotic last-minute rushes, and improve overall talent retention by creating a more predictable work environment.",
+    satisfactory:
+      "While the team manages to cross the finish line, a mediocre score shows that task completion is likely inefficient, stressful, or overly reliant on constant reminders. Actively improving this aspect by providing managers with training on resource allocation and agile workflows will streamline operations. Elevating execution here will alleviate teammate burnout, boost daily project momentum, and increase overall job satisfaction.",
+    good: "Managers are doing a good job of keeping projects moving and ensuring the team hits its targets on time. To fine-tune this success, leadership could optionally consider introducing collaborative goal-setting frameworks like OKRs (Objectives and Key Results) or sponsoring advanced project management certifications. These minor updates can turn a reliable delivery process into a highly streamlined, high-output engine.",
+    excellent:
+      "The outstanding score demonstrates that your managers are master executors who keep teams flawlessly aligned, organized, and accountable without micromanaging. Leadership should maintain the status quo, document these successful workflows as company-wide best practices, and keep up the great work. This level of operational efficiency is rare and acts as a major driver for keeping high-performing talent engaged and satisfied.",
+  },
+
+  "mentorship-frequency": {
+    critical:
+      "This score points to a severe crisis of neglect, indicating that employees feel entirely abandoned and left to figure out their roles with no guidance from leadership. Management must act with absolute urgency by mandating weekly one-on-one professional development check-ins and creating immediate feedback loops. Solving this critical issue right away will rescue crashing morale, prevent costly onboarding failures, and stop an imminent wave of resignations from frustrated staff.",
+    poor: "The low score highlights significant shortcomings, showing that mentorship is rare, inconsistent, or only happens when something goes wrong. Leadership needs to establish clear guidelines for how often managers should connect with their teams regarding career growth and skill-building. Bridging these gaps will rebuild employee confidence, ease the anxiety of working in isolation, and noticeably improve talent retention by proving the company cares about their future.",
+    satisfactory:
+      "While basic operational instructions are being given, a mediocre score here shows that meaningful mentorship and professional guidance are largely missing from the employee experience. Actively improving this aspect by setting up formal quarterly growth reviews and training superiors on how to coach effectively will bridge this gap. Taking these proactive steps will unlock higher motivation, accelerate employee skill development, and boost overall job satisfaction.",
+    good: "Superiors are doing a good job of providing regular support and guiding their teams, but there are optional ways to elevate the experience. Leadership could consider introducing a formal cross-departmental mentoring program or launching a voluntary digital platform to track professional milestones. These minor initiatives can further enrich the company culture and help polish high-potential employees into future leaders.",
+    excellent:
+      "The outstanding score demonstrates that your leaders are exceptionally dedicated mentors who consistently invest time in guiding and supporting their teams. Leadership should maintain the status quo and keep up the amazing work by continuing to nurture this deeply supportive environment. This strong culture of continuous mentorship is a massive competitive advantage and a primary reason top-tier talent stays loyal to your organization.",
+  },
+
+  "mentorship-quality": {
+    critical:
+      "This score signals a severe crisis where the guidance provided by superiors is perceived as unhelpful, counterproductive, or actively damaging to employee growth. Leadership must intervene with absolute urgency by revamping management expectations, establishing anonymous feedback loops, and providing intensive coaching on how to lead effectively. Addressing this toxic gap immediately will salvage tanking morale, protect employee mental health, and halt a critical drain of frustrated talent.",
+    poor: "The low score points to significant shortcomings, indicating that while guidance may be offered, it lacks the depth, clarity, or constructive nature needed to help employees succeed. Leadership needs to introduce structured training for managers that focuses on active listening, empathetic coaching, and actionable feedback delivery. Correcting these quality issues will restore broken trust, reduce daily frustration, and noticeably improve talent retention by showing employees their professional development is taken seriously.",
+    satisfactory:
+      "While the mentorship provided is baseline acceptable, a mediocre score here shows that guidance is likely generic, transactional, or failing to truly challenge and inspire employees. Actively improving this aspect by equipping managers with advanced professional development frameworks and encouraging highly tailored career growth conversations will bridge this gap. Elevating the caliber of mentorship will unlock higher engagement, accelerate skill progression, and boost overall job satisfaction.",
+    good: "Superiors are doing a good job of delivering meaningful, high-quality advice that effectively supports their teams' day-to-day needs. To further optimize this, leadership could optionally consider introducing 360-degree leadership feedback tools or providing managers with budgets to attend executive coaching workshops. These optional steps can help transition solid mentors into truly inspirational leaders.",
+    excellent:
+      "The outstanding score demonstrates that your superiors are providing exceptional, top-tier mentorship that leaves employees feeling deeply supported, valued, and empowered to grow. Leadership should maintain the status quo, celebrate these exemplary leaders, and keep up the fantastic work. This culture of high-caliber mentorship is a massive asset that makes your organization highly attractive to ambitious, top-performing talent.",
+  },
+
+  "task-clarity-frequency": {
+    critical:
+      "This score indicates a critical operational failure where employees are left completely in the dark, leading to widespread confusion, wasted effort, and high anxiety. Leadership must intervene immediately by mandating daily or project-kickoff syncs and introducing standardized briefs for every assignment. Resolving this severe bottleneck right away is crucial to prevent operational errors, rescue crashing productivity, and stop an imminent wave of resignations driven by sheer frustration.",
+    poor: "The low score highlights significant shortcomings, showing that task instructions are frequently vague, incomplete, or changing without notice. Leadership needs to implement clear documentation practices and train managers on how to define explicit success metrics and deadlines for every project. Fixing these communication gaps will eliminate daily guesswork, reduce operational friction, and noticeably improve talent retention by creating a stable work environment.",
+    satisfactory:
+      "While employees generally know what to do, a mediocre score suggests that instructions are often delivered on an ad-hoc basis, causing occasional delays or misalignments. Actively improving this aspect by establishing standardized project planning templates and holding regular sprint reviews will ensure consistency. Elevating clarity here will streamline workflows, alleviate team stress, and boost overall job satisfaction.",
+    good: "Managers are doing a good job of providing regular, clear expectations, allowing projects to run relatively smoothly. To fine-tune this setup, leadership could optionally consider introducing collaborative task-tracking software or hosting brief, voluntary workshops on writing effective action items. These minor adjustments can turn a good workflow into an exceptionally fast, agile execution engine.",
+    excellent:
+      "An outstanding score demonstrates that your managers are exceptional communicators who consistently set crystal-clear goals and directions for their teams. Leadership should maintain the status quo, document these communication styles as the gold standard for the company, and keep up the fantastic work. This level of clarity keeps teams highly motivated, eliminates burnout, and acts as a major driver for keeping your best talent long-term.",
+  },
+
+  "leadership-communication-frequency": {
+    critical:
+      "This score signals a severe crisis where leadership is perceived as entirely absent or invisible, leaving the workforce feeling disconnected, anxious, and dangerously out of the loop. Management must act with absolute urgency by establishing immediate, fixed touchpoints such as bi-weekly town halls or weekly email updates. Re-establishing this vital lifeline right away will dispel damaging rumors, rescue crashing morale, and prevent a rapid loss of talent driven by a total lack of direction.",
+    poor: "The low score points to significant shortcomings, indicating that updates from executives are too rare and inconsistent to keep employees aligned with the company's direction. Leadership needs to formalize a steady communication cadence, such as monthly organizational wrap-ups or regular video briefs. Bridging these communication gaps will eliminate widespread guesswork, rebuild trust in institutional stability, and noticeably improve talent retention.",
+    satisfactory:
+      "While the executive team isn't entirely silent, a mediocre score here shows that updates are likely reactive, ad-hoc, or failing to cut through the noise to reach all departments. Actively improving this aspect by standardizing a regular cross-company newsletter or implementing feedback-driven Q&A slots will bridge this gap. Elevating the frequency of these interactions will boost daily alignment, strengthen company culture, and increase overall job satisfaction.",
+    good: 'The leadership team does a good job of keeping the organization informed and maintains a healthy, regular presence. To optimize this further, leadership could optionally consider introducing informal "coffee chats" with executives or opening a digital suggestion box for steady, low-friction feedback. These extra steps can turn a solid communication loop into a highly collaborative, transparent culture.',
+    excellent:
+      "An outstanding score demonstrates that your executive team has mastered organizational communication, keeping employees feeling consistently informed, aligned, and included. Leadership should maintain the status quo, continue leading with this stellar standard of openness, and keep up the fantastic work. This level of steady, proactive transparency is a massive competitive advantage for keeping your best people engaged and loyal.",
+  },
+
+  "leadership-communication-quality": {
+    critical:
+      "This score signals a severe crisis where executive communication is perceived as confusing, dishonest, or entirely tone-deaf, creating deep distress and paranoia across the workforce. Leadership must act with absolute urgency by revamping their messaging style to prioritize radical transparency, empathy, and absolute clarity. Fixing this broken trust immediately is critical to salvage plummeting organizational morale, protect the company's internal reputation, and stop an imminent wave of resignations.",
+    poor: "The low score points to significant shortcomings, indicating that while leadership communicates, the messages are often vague, overly corporate, or fail to address what employees actually care about. Leadership needs to focus on delivering more genuine, direct updates that clearly connect company decisions to the daily realities of the staff. Eliminating this corporate fluff will restore broken trust, reduce workplace anxiety, and noticeably improve talent retention.",
+    satisfactory:
+      "While updates are baseline informative, a mediocre score here shows that leadership communication is likely dry, one-way, or failing to truly inspire and align the team. Actively improving this aspect by shifting to a more conversational tone, using storytelling, and introducing interactive elements like live Q&As will bridge this gap. Elevating the quality of these messages will spark higher employee engagement, strengthen company unity, and increase overall job satisfaction.",
+    good: "The leadership team does a good job of delivering high-quality, meaningful updates that keep the organization well-aligned. To optimize this further, leadership could optionally consider introducing multi-media formats—like brief video recaps alongside text—or providing managers with talking points to help unpack big announcements with their teams. These minor enhancements can turn standard updates into highly memorable, motivating moments.",
+    excellent:
+      "The outstanding score proves that your executive team communicates with exceptional clarity, empathy, and integrity, making every employee feel respected and inspired. Leadership should maintain the status quo, protect this culture of open and authentic dialogue, and keep up the fantastic work. This elite level of communication quality is a rare asset that drives massive employee loyalty and keeps your top performers deeply committed to the company's vision.",
+  },
+
+  "feedback-frequency": {
+    critical:
+      "This score points to a severe crisis of isolation, indicating that employees are working in a complete vacuum with no idea how they are performing until it is too late. Leadership must act with absolute urgency by mandating regular, scheduled performance touchpoints and integrating brief feedback loops into weekly workflows. Resolving this critical gap immediately is vital to rescue crashing morale, correct costly performance errors early, and halt an imminent wave of resignations from frustrated staff.",
+    poor: "The low score highlights significant shortcomings, showing that feedback is rare, inconsistent, or only given during annual reviews or when a major mistake occurs. Leadership needs to establish clear guidelines for managers to provide consistent monthly or bi-weekly check-ins. Bridging these communication gaps will eliminate daily performance anxiety, rebuild employee confidence, and noticeably improve talent retention by proving the company is invested in their growth.",
+    satisfactory:
+      "While employees receive occasional updates on their work, a mediocre score suggests that feedback is ad-hoc, sparse, or primarily focused on short-term project tasks rather than continuous development. Actively improving this aspect by standardizing brief monthly check-ins and creating predictable feedback cadences will bridge this gap. Elevating the frequency of these conversations will unlock higher day-to-day motivation, accelerate skill progression, and boost overall job satisfaction.",
+    good: "Managers are doing a good job of keeping their teams informed with steady, regular feedback on their performance. To fine-tune this setup, leadership could optionally consider introducing lightweight, real-time feedback tools or peer-to-peer recognition platforms to supplement structured manager reviews. These minor additions can turn a good feedback loop into a highly dynamic, continuous learning culture.",
+    excellent:
+      "The outstanding score demonstrates that your organization has built a stellar culture of continuous communication, where employees feel consistently guided, seen, and supported. Leadership should maintain the status quo, protect these highly effective check-in habits, and keep up the fantastic work. This level of steady, proactive feedback is a massive asset that keeps top talent highly engaged and deeply loyal to the company.",
+  },
+
+  "feedback-quality": {
+    critical:
+      "This score signals a severe crisis where the feedback provided is perceived as hurtful, completely unhelpful, or purely punitive, leaving employees feeling attacked rather than supported. Leadership must intervene with absolute urgency by launching intensive training for managers on how to deliver constructive, respectful critiques. Correcting this critical issue right away is vital to rescue plummeting morale, protect employee mental health, and stop a damaging drain of your best talent.",
+    poor: "The low score highlights significant shortcomings, indicating that while feedback is given, it is often too vague, generalized, or lacks actionable steps for improvement. Leadership needs to implement structured feedback frameworks that require managers to provide specific examples and clear next steps. Fixing these quality gaps will eliminate performance confusion, reduce workplace frustration, and noticeably improve employee retention.",
+    satisfactory:
+      "While the feedback provided is baseline acceptable, a mediocre score shows that insights are likely transactional, generic, or failing to truly stretch and develop employees' skills. Actively improving this aspect by training managers on growth-oriented coaching and behavior-focused feedback techniques will bridge this gap. Elevating the caliber of these evaluations will spark higher daily motivation, accelerate professional development, and boost overall job satisfaction.",
+    good: "Managers are doing a good job of delivering meaningful, high-quality advice that effectively helps their teams navigate their roles. To optimize this further, leadership could optionally consider introducing 360-degree feedback tools or offering voluntary workshops on how to receive and act on critiques. These minor additions can help transition solid feedback loops into a highly sophisticated, continuous learning culture.",
+    excellent:
+      "The outstanding score demonstrates that your leaders are delivering exceptional, top-tier feedback that leaves employees feeling deeply empowered, valued, and clear on their path forward. Leadership should maintain the status quo, celebrate these exemplary coaching habits, and keep up the fantastic work. This culture of high-quality guidance is a massive competitive advantage for keeping top-performing talent highly engaged and loyal.",
+  },
+
+  "leadership-transparency": {
+    critical:
+      "This score points to a severe trust crisis, indicating that employees feel intentionally misled, excluded from critical information, or completely kept in the dark. Leadership must intervene with absolute urgency by opening direct lines of communication, addressing hard truths openly, and dismantling the culture of secrecy. Rebuilding transparency immediately is vital to clear out toxic rumors, rescue collapsing morale, and prevent a massive and costly loss of talent.",
+    poor: 'The low score highlights significant shortcomings, showing that communication is heavily gatekept, making teams feel sidelined or caught off guard by sudden shifts. Leadership needs to establish clear, predictable updates detailing the "why" behind major organizational decisions and changes. Fixing these transparency gaps will restore broken trust, lower daily workplace anxiety, and noticeably improve talent retention.',
+    satisfactory:
+      "While there are no blatant deceits, a mediocre score shows that information is shared strictly on a need-to-know basis, leaving employees feeling disconnected from the company’s bigger picture. Actively improving this aspect by sharing strategic goals, business performance metrics, and upcoming plans more freely will bridge this gap. Elevating transparency here will boost team alignment, foster deeper organizational pride, and increase overall job satisfaction.",
+    good: 'The leadership team does a good job of keeping operations transparent and honest, allowing for a generally trusting work environment. To optimize this further, leadership could optionally consider hosting informal "ask-me-anything" (AMA) sessions or publishing leadership meeting highlights for interested staff. These minor enhancements can turn a good culture into an exceptionally open, high-trust environment.',
+    excellent:
+      "The outstanding score demonstrates that your leaders operate with exceptional integrity, honesty, and openness, making teams feel deeply respected and secure. Leadership should maintain the status quo, continue leading with this admirable standard of clarity, and keep up the great work. This high level of genuine transparency is a massive asset that builds fierce employee loyalty and keeps your top talent completely committed to the company.",
+  },
+
+  "leadership-accountability": {
+    critical:
+      "This score points to a severe crisis of integrity, indicating that upper management is perceived as dodging blame, passing the buck, or failing to own up to strategic missteps. Leadership must act with absolute urgency by publicly acknowledging recent organizational failures, establishing clear personal ownership over company goals, and setting measurable performance targets for executives. Re-establishing accountability immediately is critical to salvage plummeting trust, rescue tanking morale, and prevent a total collapse in talent retention.",
+    poor: "The low score highlights significant shortcomings, showing that employees feel leaders rarely take responsibility when things go wrong, creating a culture of finger-pointing. Leadership needs to introduce transparent post-project reviews where executives openly discuss what didn't work alongside what did. Correcting this defensive posture will restore broken trust, foster psychological safety, and noticeably improve employee retention by showing the team that everyone answers to the same standards.",
+    satisfactory:
+      "While leaders generally hit their baseline obligations, a mediocre score suggests that ownership is selective, trailing off when initiatives stall or face internal pushback. Actively improving this aspect by regularly and visibly reporting on executive-led project progress—even when targets are missed—will bridge this gap. Elevating leadership ownership here will instill greater team confidence, spark higher cross-departmental motivation, and boost overall job satisfaction.",
+    good: "The executive team does a good job of owning their decisions and holding themselves responsible for organizational outcomes. To fine-tune this aspect, leadership could optionally consider publishing regular, transparent retrospective summaries or tying a portion of executive compensation directly to employee-driven survey metrics. These extra steps can polish a reliable leadership team into a powerful model of modern workplace integrity.",
+    excellent:
+      "The outstanding score proves that your upper management leads by example, demonstrating exceptional ownership and radical accountability for every success and setback. Leadership should maintain the status quo, protect this highly honorable standard of governance, and keep up the amazing work. This elite level of institutional integrity is an incredibly rare asset that builds fierce employee loyalty and keeps top talent deeply committed to your long-term vision.",
+  },
+
+  "fair-evaluation": {
+    critical:
+      "This score signals a severe crisis where the evaluation system is widely perceived as completely rigged, biased, or driven entirely by favoritism. Leadership must act with absolute urgency by halting the current review cycle, stripping out subjective metrics, and mandating transparent, standardized evaluation scorecards across all departments. Rectifying this critical injustice immediately is vital to stop rapidly spreading resentment, protect employee mental health, and prevent a massive drain of your best talent.",
+    poor: "The low score highlights significant shortcomings, indicating that employees feel their hard work goes unnoticed because the review criteria are vague, inconsistent, or changing without warning. Leadership needs to establish concrete, documented Key Performance Indicators (KPIs) and train managers on how to apply them objectively. Removing this guesswork will restore broken trust, reduce review-season anxiety, and noticeably improve talent retention by proving that success is tied to performance, not politics.",
+    satisfactory:
+      "While the process is baseline functional, a mediocre score here shows that subtle biases or varying management styles are keeping evaluations from being truly equitable. Actively improving this aspect by implementing regular calibration sessions between managers to align rating standards and offering a clear, safe process for employees to appeal reviews will bridge this gap. Elevating evaluation equity will unlock higher daily motivation, build a stronger meritocracy, and boost overall job satisfaction.",
+    good: "The organization does a good job of keeping performance evaluations fair and data-driven, creating a generally trusting atmosphere. To fine-tune this process, leadership could optionally consider introducing 360-degree feedback loops—allowing inputs from peers and subordinates—or piloting continuous, lightweight pulse reviews instead of relying solely on annual evaluations. These optional enhancements can polish a good process into an industry-leading standard for operational fairness.",
+    excellent:
+      "An outstanding score demonstrates that your performance evaluation system is exceptionally transparent, objective, and deeply trusted by the entire workforce. Leadership should maintain the status quo, protect these strict equity standards, and keep up the fantastic work. A review process that employees genuinely trust is a massive competitive advantage that keeps top-tier talent highly engaged and fiercely loyal to your organization.",
+  },
+
+  "employee-inclusive-decision-making": {
+    critical:
+      "This score signals a severe crisis of exclusion, indicating that decisions are handed down completely top-down, leaving employees feeling entirely voiceless and ignored. Leadership must act with absolute urgency by halting major unilateral rollouts, introducing immediate town hall listening sessions, and establishing direct employee advisory panels. Fixing this severe disconnect right away is vital to arrest plummeting morale, heal deep organizational resentment, and prevent a massive wave of resignations from staff who feel treated like cogs.",
+    poor: `The low score points to significant shortcomings, showing that while leadership might occasionally ask for input, it is widely seen as a superficial, "check-the-box" exercise where employee feedback is ultimately ignored. Leadership needs to implement structured feedback loops, explicitly showing the team which suggestions were adopted and explaining the business rationale behind those that weren't. Restoring this missing influence will rebuild broken trust, lower workplace cynicism, and noticeably improve talent retention.`,
+    satisfactory:
+      "While employees are occasionally consulted on minor matters, a mediocre score here shows that big-picture decisions are still heavily isolated, leaving teams to deal with the fallout of choices they had no hand in shaping. Actively improving this aspect by launching departmental focus groups during the early planning stages of new initiatives will bridge this gap. Elevating inclusion here will drive deeper shared ownership, reduce internal friction during changes, and boost overall job satisfaction.",
+    good: "The leadership team does a good job of gathering employee input and factoring staff perspectives into major organizational changes. To optimize this further, leadership could optionally consider opening up decentralized, digital ideation boards where employees can pitch and vote on internal improvements, or piloting collaborative workshop frameworks. These minor updates can turn a good feedback culture into a highly innovative, co-created workplace environment.",
+    excellent:
+      "The outstanding score demonstrates that your organization has mastered collaborative leadership, creating a highly collaborative environment where employees feel deeply respected and actively involved in shaping their work future. Leadership should maintain the status quo, protect these highly inclusive decision-making habits, and keep up the fantastic work. This elite level of psychological safety and shared governance is a rare asset that keeps top performers highly engaged and fiercely loyal.",
+  },
+
+  "workload-distribution": {
+    critical:
+      "This score points to a severe structural breakdown, indicating an environment where a few individuals are drowning in overwork while others face minimal demands, leading to massive resentment and burnout. Leadership must intervene with absolute urgency by auditing all current team responsibilities, reassigning projects immediately, and establishing strict operational caps on individual capacities. Fixing this imbalance right away is vital to protect employee mental health, prevent catastrophic errors from exhausted staff, and halt an imminent wave of resignations.",
+    poor: "The low score highlights significant shortcomings, showing that task allocation is highly inconsistent and often rewards high performance with more work, while leaving skill gaps or underperformance unaddressed. Leadership needs to introduce objective workflow tracking systems and standardize how tasks are assigned based on role and current capacity. Eliminating this uneven strain will restore cross-team trust, reduce daily workplace anxiety, and noticeably improve talent retention by leveling the playing field.",
+    satisfactory:
+      "While work is getting done and the team functions, a mediocre score suggests that distribution is reactive, with bottlenecks frequently forming around specific subject matter experts or senior team members. Actively improving this aspect by cross-training employees to share specialized tasks and implementing transparent sprint planning will bridge this gap. Elevating distribution efficiency here will alleviate hidden burnout, build a more resilient team structure, and boost overall job satisfaction.",
+    good: 'The management team does a good job of monitoring capacities and keeping the workload relatively balanced across the department. To fine-tune this success, leadership could optionally consider introducing collaborative resource-allocation software or setting up a quarterly "capacity check-in" separate from standard project updates. These minor additions can help turn a balanced team into a highly agile, sustainable execution engine.',
+    excellent:
+      "The outstanding score demonstrates that your organization has mastered resource allocation, ensuring that everyone contributes equitably and sustainably without anyone facing burnout. Leadership should maintain the status quo, document these balancing methodologies as company-wide best practices, and keep up the fantastic work. A work environment that genuinely respects and balances employee capacity is a rare asset that drives massive loyalty and keeps high performers deeply engaged.",
+  },
+
+  "team-general-efficacy": {
+    critical:
+      "This score signals a severe productivity and execution crisis, indicating that pervasive underperformance, lack of skill, or low motivation are actively stalling daily operations. Leadership must act with absolute urgency by stepping in with immediate performance audits, establishing clear baseline competency standards, and structuring intensive training or performance improvement plans (PIPs). Correcting these fundamental team deficiencies right away is vital to rescue crashing operational momentum and prevent a total breakdown of company workflows.",
+    poor: "The low score highlights significant skill or alignment gaps, showing that team members frequently miss objectives, lack accountability, or struggle to collaborate effectively. Leadership needs to introduce structured skills-gap assessments, clear up overlapping role responsibilities, and provide targeted training programs. Resolving these capabilities gaps will restore operational consistency, reduce peer-to-peer friction, and noticeably improve overall team output.",
+    satisfactory:
+      "While the team is keeping things functional and meeting basic requirements, a mediocre score suggests they are operating mechanically rather than as a highly cohesive, proactive unit. Actively improving this aspect by fostering cross-training initiatives, setting stretch goals, and introducing team-wide problem-solving workshops will bridge this gap. Elevating collective capabilities here will boost day-to-day momentum, spark higher internal collaboration, and unlock greater project success.",
+    good: "Team members are highly capable, doing a good job of collaborating, and consistently delivering solid results. To fine-tune this success, leadership could optionally consider introducing cross-departmental innovation days, supporting advanced technical certifications, or sponsoring specialized skill-building networks. These extra steps can help polish a strong, dependable team into an exceptionally agile, high-performing powerhouse.",
+    excellent:
+      "The outstanding score demonstrates that your team consists of exceptionally skilled, highly driven individuals who consistently collaborate and execute at elite levels. Leadership should maintain the status quo, ensure these high performers have the cutting-edge tools they need, and keep up the fantastic work. Having such a top-tier execution engine is a major competitive advantage that drives organizational growth and naturally attracts premium industry talent.",
+  },
+
+  "team-tasks-efficacy": {
+    critical:
+      "This score points to a severe crisis in basic execution, indicating that deadlines are routinely missed, projects are permanently stalled, and accountability has completely broken down. Leadership must intervene with absolute urgency by stripping back project scopes, mandating daily stand-up syncs, and mapping out every bottleneck. Fixing this operational emergency right away is critical to protect client relationships, salvage tanking internal morale, and prevent catastrophic project failures.",
+    poor: "The low score highlights significant coordination gaps, showing that while tasks are attempted, poor time management, vague ownership, or skill deficits consistently cause delays. Leadership needs to introduce unified project tracking tools, train the team on estimating realistic timelines, and explicitly assign single owners to every task. Correcting these execution gaps will eliminate chaotic last-minute rushes, reduce baseline workplace anxiety, and stabilize delivery timelines.",
+    satisfactory:
+      "While the team generally crosses the finish line, a mediocre score suggests that hitting deadlines is an inefficient, stressful sprint that often requires constant chasing or cutting corners. Actively improving this aspect by implementing time-blocking frameworks, running retrospective meetings to dissect delays, and optimizing internal dependencies will bridge this gap. Elevating execution consistency here will prevent employee burnout, protect product quality, and boost daily operational momentum.",
+    good: "Team members are doing a good job of managing their workloads and consistently ensuring tasks are delivered on time. To fine-tune this success, leadership could optionally consider introducing collaborative agile frameworks (like kanban boards) or offering training on advanced sprint planning. These minor adjustments can turn a naturally reliable delivery process into an exceptionally fast, highly optimized engine.",
+    excellent:
+      "The outstanding score demonstrates that your team members are master executors who operate with exceptional ownership, punctuality, and time management skills. Leadership should maintain the status quo, study these efficient workflows to replicate them in other departments, and keep up the fantastic work. This level of elite execution is incredibly rare and serves as a major driver for keeping high-performing talent engaged and motivated.",
+  },
+
+  "team-collaboration": {
+    critical:
+      "This score points to a severe culture crisis, indicating an environment dominated by intense friction, information hoarding, or total isolation where team members refuse to assist one another. Leadership must act with absolute urgency by stepping in to address interpersonal conflicts, establishing shared team goals over individual metrics, and creating mandatory collaborative channels. Healing this deep fracture right away is vital to rescue crashing employee morale, stop toxic infighting, and prevent an immediate wave of resignations.",
+    poor: "The low score highlights significant shortcomings, showing that while team members work alongside each other, they operate in strict silos with minimal communication or cross-support. Leadership needs to introduce structured cross-training, shared project ownership, and regular peer alignment syncs. Breaking down these defensive barriers will reduce daily operational friction, lower workplace anxiety, and noticeably improve talent retention by fostering a sense of shared purpose.",
+    satisfactory:
+      "While the team maintains a polite and functional working relationship, a mediocre score suggests that collaboration is transactional, occurring only when absolutely forced by a project's architecture. Actively improving this aspect by launching collaborative brainstorming sessions, setting up structured peer-review feedback loops, and clarifying team workflows will bridge this gap. Cultivating a more naturally supportive dynamic will spark greater daily motivation, build stronger internal trust, and boost overall job satisfaction.",
+    good: "Team members do a good job of collaborating, sharing knowledge freely, and stepping up to help one another when workloads peak. To fine-tune this success, leadership could optionally consider setting up dedicated digital spaces for informal knowledge sharing, launching voluntary cross-functional innovation projects, or facilitating light team-building exercises. These minor enhancements can turn a reliable group into an exceptionally unified, high-performing team.",
+    excellent:
+      "The outstanding score demonstrates that your team has built an exceptional culture of mutual support, radical collaboration, and genuine psychological safety. Leadership should maintain the status quo, celebrate this incredible team chemistry, and protect it from disruptive organizational changes. This elite level of unity and shared trust is a massive competitive advantage that drives high engagement and keeps your top talent fiercely loyal to the company.",
+  },
+
+  "team-members-accountability": {
+    critical:
+      "This score signals a severe crisis of integrity within the team, characterized by persistent finger-pointing, excuse-making, or a complete refusal to own mistakes. Leadership must act with absolute urgency by stepping in to redefine individual roles, establishing clear consequences for missed deliverables, and introducing transparent task-tracking systems. Correcting this culture of blame right away is vital to salvage tanking team morale, protect the organization from catastrophic operational errors, and stop a critical drain of frustrated talent.",
+    poor: "The low score A score in this range highlights significant shortcomings, indicating that team members frequently drop the ball, wait to be told what to do, or shy away from taking responsibility for their outcomes. Leadership needs to introduce clear, documented ownership frameworks (such as a RACI matrix) and train the team on how to proactively flag issues before they become crises. Eliminating this passivity will restore peer-to-peer trust, lower daily workplace anxiety, and noticeably improve operational consistency.",
+    satisfactory:
+      "While team members generally complete their assigned tasks, a mediocre score suggests that ownership is selective, often trailing off when projects face difficulties or cross-departmental hurdles. Actively improving this aspect by shifting from task-based assignments to outcome-based goals and running regular retrospective meetings to openly discuss missteps will bridge this gap. Elevating accountability here will foster psychological safety, spark higher problem-solving initiative, and boost overall job satisfaction.",
+    good: "The team does a good job of demonstrating personal responsibility, consistently owning their tasks and working to fix their mistakes when things go wrong. To optimize this further, leadership could optionally consider introducing peer-led project reviews or empowering team members with greater decision-making autonomy over their workflows. These minor enhancements can help transition a naturally dependable team into a highly autonomous, self-correcting unit.",
+    excellent:
+      "The outstanding score proves that your team operates with an elite sense of professional maturity, demonstrating exceptional ownership and radical accountability for every success and setback. Leadership should maintain the status quo, celebrate this high-trust culture, and protect it from restrictive micromanagement. This level of internal integrity is an incredibly rare organizational asset that drives rapid execution and keeps top performers deeply engaged and loyal.",
+  },
+
+  "team-communication-frequency": {
+    critical:
+      "This score points to a severe breakdown in team connection, indicating an environment of absolute isolation where team members rarely speak, collaborate, or share updates. Leadership must act with absolute urgency by mandating daily stand-ups and setting up dedicated digital communication channels for the team. Resolving this critical silence immediately is vital to rescue crashing operational momentum, stop costly duplications of effort, and prevent a rapid loss of talent driven by professional alienation.",
+    poor: "The low score highlights significant coordination gaps, showing that updates are far too rare, inconsistent, or erratic to keep the team aligned on daily objectives. Leadership needs to introduce clear communication guidelines, such as weekly team syncs or required end-of-day progress logs. Bridging these interaction gaps will eliminate daily project guesswork, lower baseline workplace anxiety, and noticeably improve team cohesion.",
+    satisfactory:
+      "While the team isn't completely silent, a mediocre score suggests that peer-to-peer communication is reactive, siloed, or restricted to urgent project crises. Actively improving this aspect by implementing structured mid-week check-ins and encouraging proactive project updates will bridge this gap. Elevating the cadence of these daily touchpoints will streamline project handoffs, reduce team stress, and boost overall job satisfaction.",
+    good: "The team does a good job of keeping in regular touch, maintaining a healthy and consistent flow of information across projects. To fine-tune this success, leadership could optionally consider introducing collaborative task-tracking boards or hosting casual, voluntary team huddles to keep communication paths fluid. These small adjustments can easily turn a steady flow of updates into a highly agile, proactive execution loop.",
+    excellent:
+      "The outstanding score demonstrates that your team has built a highly connected, fluid communication ecosystem where information flows seamlessly and naturally. Leadership should maintain the status quo, protect this collaborative rhythm from unnecessary tool fatigue, and keep up the fantastic work. This elite level of steady, organic alignment keeps projects moving at maximum velocity and acts as a major driver for keeping your best talent long-term.",
+  },
+
+  "team-communication-quality": {
+    critical:
+      "This score signals a severe crisis where team communication is broken, passive-aggressive, or highly confusing, leading to toxic misunderstandings and critical project errors. Leadership must act with absolute urgency by intervening in team conflicts, establishing explicit etiquette guidelines, and mandating clear, structured formats for sharing information. Fixing this toxic communication barrier immediately is vital to rescue crashing team morale, protect employee mental health, and stop an imminent wave of resignations.",
+    poor: "The low score points to significant coordination shortcomings, indicating that peer updates are frequently vague, incomplete, or filled with assumptions that leave colleagues guessing. Leadership needs to introduce basic communication training and standardized templates for project handoffs and technical updates. Eliminating this conversational sloppiness will reduce daily workplace frustration, cut down on wasted re-work, and noticeably improve team alignment.",
+    satisfactory:
+      'While team messages are baseline polite and informative, a mediocre score here shows that communication is often dry, transactional, or fails to convey the full context needed for seamless teamwork. Actively improving this aspect by encouraging team members to explain the "why" behind their requests and providing training on active listening will bridge this gap. Elevating the caliber of these daily interactions will spark higher collaborative motivation, build peer trust, and boost overall job satisfaction.',
+    good: "The team does a good job of delivering high-quality, clear, and respectful communication that keeps projects moving smoothly. To optimize this further, leadership could optionally consider running brief workshops on advanced constructive feedback or introducing visual communication tools (like collaborative whiteboards) to help teams map out complex ideas together. These minor enhancements can turn solid daily updates into highly effective, innovative exchanges.",
+    excellent:
+      "The outstanding score proves that your team communicates with exceptional clarity, empathy, and precision, making every member feel supported and completely aligned. Leadership should maintain the status quo, celebrate this rare standard of mutual understanding, and protect it from disruptive organizational changes. This elite level of team communication quality is a powerful asset that drives rapid problem-solving and keeps top talent deeply engaged and loyal.",
+  },
+
+  "team-responsiveness": {
+    critical:
+      "This score points to a severe communication bottleneck, indicating that messages, emails, and pings are routinely ignored or delayed for days, leaving projects completely paralyzed. Leadership must intervene with absolute urgency by establishing non-negotiable response-time SLAs (Service Level Agreements) and holding chronically unresponsive team members accountable. Resolving this operational gridlock immediately is critical to rescue crashing internal morale, prevent missed external deadlines, and stop a wave of resignations from deeply frustrated staff.",
+    poor: "The low score highlights significant coordination gaps, showing that getting a reply requires constant chasing, which creates a highly inefficient and frantic work environment. Leadership needs to establish clear team norms, such as clarifying which channels are for urgent vs. non-urgent queries and setting standard expectations for same-day replies. Eliminating these delays will lower daily workplace anxiety, remove unnecessary roadblocks, and noticeably improve operational speed.",
+    satisfactory:
+      'While team members eventually reply, a mediocre score suggests that responsiveness is inconsistent, trailing off during busy periods or varying wildly depending on the individual. Actively improving this aspect by training the team on "status updates" (e.g., replying with a quick acknowledgement when a full answer takes time) and optimizing project handoff protocols will bridge this gap. Elevating responsiveness consistency here will streamline daily workflows, reduce team friction, and boost overall job satisfaction.',
+    good: 'The team does a good job of staying attentive, generally providing prompt and helpful replies that keep daily tasks moving forward smoothly. To fine-tune this success, leadership could optionally consider introducing "focus time" blocks where team members can pause notifications to deep-work, paired with a designated protocol for true emergencies. These minor boundary adjustments can turn a fast-reply culture into a sustainable, highly productive ecosystem.',
+    excellent:
+      "The outstanding score demonstrates that your team operates with exceptional agility and mutual respect, maintaining near-seamless, real-time collaboration. Leadership should maintain the status quo, ensure the team isn't suffering from notification fatigue or always-on burnout, and keep up the fantastic work. This elite level of team responsiveness is a powerful organizational asset that drives rapid problem-solving and keeps top talent deeply engaged.",
+  },
+
+  "work-skills-alignment": {
+    critical:
+      "This score signals a severe operational and recruitment crisis, indicating that employees are trapped doing tasks that completely diverge from their expertise, leaving them feeling wasted, frustrated, and misallocated. Leadership must act with absolute urgency by auditing daily workloads, halting out-of-scope assignments, and immediately realigning individuals with their core competencies. Correcting this massive mismatch right away is vital to rescue tanking morale, stop severe skill degradation, and halt an imminent wave of resignations from top talent who feel bait-and-switched.",
+    poor: 'The low score highlights significant structural shortcomings, showing that administrative overhead, "busywork," or constant fire-fighting are routinely pulling employees away from the actual specialized work they were hired to do. Leadership needs to introduce objective role-boundary frameworks and review team task queues to offload or automate non-core responsibilities. Eliminating this daily distraction will lower workplace frustration, improve overall output quality, and noticeably increase talent retention.',
+    satisfactory:
+      'While employees are able to utilize their core skills for basic obligations, a mediocre score suggests that shifting project demands or creeping responsibilities frequently dilute their focus, keeping them from doing their best work. Actively improving this aspect by co-creating updated job descriptions with staff and setting explicit, quarterly "core-work targets" will bridge this gap. Elevating alignment here will unlock higher daily motivation, maximize institutional efficiency, and boost overall job satisfaction.',
+    good: 'The organization does a good job of keeping workloads tightly aligned with roles, allowing employees to regularly exercise and showcase the exact skill sets they bring to the table. To fine-tune this alignment, leadership could optionally consider introducing cross-functional "passion projects" or voluntary skill-swap initiatives to let employees expand their core capabilities into adjacent areas. These minor updates can turn a well-aligned team into an exceptionally innovative, multi-faceted unit.',
+    excellent:
+      "The outstanding score proves that your organization has mastered role precision, ensuring that your specialists spend their days executing at the absolute peak of their expertise. Leadership should maintain the status quo, protect these boundaries from organic role creep, and keep up the fantastic work. A culture that honors and optimizes an individual's true craft is a massive competitive advantage that drives elite-level output and keeps high-performing talent fiercely loyal.",
+  },
+
+  "career-growth-path-clarity": {
+    critical:
+      "This score signals a severe career progression crisis, indicating that employees feel trapped in dead-end roles with zero visibility into how to advance within the company. Leadership must intervene with absolute urgency by building and publishing documented career ladders that clearly outline the skills and milestones required for promotion. Fixing this structural blind spot immediately is vital to arrest plummeting morale, eliminate professional despair, and halt an imminent wave of resignations from ambitious talent who feel ignored.",
+    poor: "The low score highlights significant structural shortcomings, showing that career advancement is widely perceived as unpredictable, vague, or driven by subjective politics rather than merit. Leadership needs to introduce clear, standardized role competencies and mandate quarterly career development conversations between managers and staff. Removing this ambiguity will replace daily professional anxiety with clear goals, restore internal trust, and noticeably improve talent retention.",
+    satisfactory:
+      "While a basic promotion framework might exist on paper, a mediocre score shows that the path forward feels generic, unachievable, or disconnected from an employee's actual daily work. Actively improving this aspect by mapping out multi-directional career paths—such as distinct tracks for individual contributors vs. people managers—and offering clear individual development plans (IDPs) will bridge this gap. Elevating pathway clarity here will unlock higher daily motivation, spark greater dedication, and boost overall job satisfaction.",
+    good: "The organization does a good job of outlining career progression, giving employees a realistic and encouraging view of their future with the company. To fine-tune this success, leadership could optionally consider introducing transparent internal job-shadowing programs or building a digital talent marketplace to help staff explore lateral growth opportunities across different departments. These minor additions can transform a solid promotion track into a highly dynamic, self-directed career ecosystem.",
+    excellent:
+      "The outstanding score demonstrates that your organization has built an exceptional meritocracy where career progression is transparent, predictable, and actively supported at every level. Leadership should maintain the status quo, continue investing in professional development resources, and keep up the fantastic work. A work culture that provides undeniable clarity on career longevity is a massive competitive advantage that keeps high performers deeply engaged and fiercely loyal.",
+  },
+
+  "career-goals-support": {
+    critical:
+      "This score signals a severe talent cultivation crisis, indicating that employees feel their long-term professional aspirations are completely ignored, dismissed, or viewed as secondary to basic operational output. Leadership must act with absolute urgency by mandating immediate career-mapping sessions and ensuring managers actively advocate for their team members' professional futures. Reversing this neglect right away is vital to arrest plunging morale, eliminate the feeling of stagnation, and halt an imminent wave of resignations from ambitious high-potentials.",
+    poor: "The low score highlights significant cultural shortcomings, showing that while professional goals might be discussed casually, there is a distinct lack of tangible resources, follow-through, or active sponsorship from management. Leadership needs to formalize individual development plans (IDPs) and back them up with dedicated corporate learning stipends or protected time for upskilling. Replacing empty promises with concrete developmental support will restore broken trust, reduce career anxiety, and noticeably improve talent retention.",
+    satisfactory:
+      "While leadership is baseline supportive and doesn't block external learning, a mediocre score suggests that career support is largely passive, putting the entire burden of growth on the employee's shoulders with little internal guidance. Actively improving this aspect by establishing internal mentorship programs and creating structured avenues for cross-departmental projects will bridge this gap. Elevating active advocacy here will unlock higher daily motivation, deepen employee loyalty, and boost overall job satisfaction.",
+    good: "The management team does a good job of supporting personal career growth, regularly checking in on long-term goals and offering relevant developmental milestones. To fine-tune this success, leadership could optionally consider introducing executive sponsorship matching for mid-level staff or launching a leadership development academy to prep high performers for future internal vacancies. These steps can polish a supportive culture into a powerful engine for internal mobility.",
+    excellent:
+      "The outstanding score demonstrates that your organization acts as a genuine career accelerator, where leadership treats employee long-term professional growth as a core business priority. Leadership should maintain the status quo, continue fostering high-trust developmental partnerships, and keep up the fantastic work. An organization that actively builds its people into industry leaders creates a fierce competitive advantage that drives unmatched employee loyalty and attracts top-tier global talent.",
+  },
+
+  "employee-micromanagement": {
+    critical:
+      "This score signals a severe crisis of control, indicating a highly suffocating environment where managers routinely fail to step back, obsessing instead over minor details and demanding relentless status updates. Leadership must act with absolute urgency by mandating immediate management training on delegation, establishing clear boundaries for operational autonomy, and actively shifting metrics from tracking desk hours to assessing actual output. Dismantling this toxic control loop right away is vital to arrest plunging morale, stop severe creative paralysis, and halt an imminent wave of resignations from top talent who feel deeply choked.",
+    poor: "The low score highlights significant cultural shortcomings, showing that managers frequently over-meddle and struggle to give employees the space they need to execute their work confidently. Leadership needs to introduce objective task-ownership frameworks and coach managers on how to set clear expectations rather than dictating step-by-step methods. Eliminating this over-the-shoulder management will restore broken trust, reduce daily workplace anxiety, and noticeably improve talent retention by giving employees room to breathe.",
+    satisfactory:
+      "While managers generally refrain from micromanaging routine tasks, a mediocre score here shows that leadership tends to panic and over-meddle whenever project stakes rise or timelines tighten. Actively improving this aspect by implementing structured asynchronous communication norms and running calibration alignment syncs before a project kicks off will bridge this gap. Transitioning away from reactive oversight will unlock higher daily motivation, build greater manager-team trust, and boost overall job satisfaction.",
+    good: "The organization does a good job of honoring independence, with managers consistently stepping back and acting as supportive guides rather than rigid gatekeepers. To fine-tune this success, leadership could optionally consider introducing output-driven project frameworks (like OKRs) that focus entirely on results, or setting up feedback loops where staff can safely evaluate management styles. These minor adjustments can polish a healthy, trust-based environment into a highly autonomous, agile workspace.",
+    excellent:
+      "The outstanding score proves that your management team has completely mastered the discipline of restraint, treating employees as fully capable owners who possess complete operational freedom. Leadership should maintain the status quo, champion these high-trust, low-oversight dynamics as core corporate values, and keep up the fantastic work. A workplace that fiercely protects and celebrates absolute autonomy is an incredibly rare asset that sparks unmatched innovation and keeps top-tier talent intensely loyal.",
+  },
+
+  "employee-autonomy": {
+    critical:
+      "This score points to a severe crisis of creative and operational paralysis, indicating an environment where employees have virtually zero control over their daily workflows or decisions. Leadership must act with absolute urgency by removing rigid structural red tape, redefining approval thresholds, and coaching managers to delegate authority rather than just tasks. Restoring basic decision-making power right away is vital to reverse plummeting morale, eliminate professional stagnation, and halt an imminent wave of resignations from talent who feel like cogs in a machine.",
+    poor: "The low score highlights significant cultural shortcomings, showing that while employees aren't entirely trapped, they still face heavy constraints, constant second-guessing, and an explicit lack of trust. Leadership needs to introduce clear boundaries for individual ownership and establish guidelines that empower staff to solve problems independently. Eliminating this heavy-handed oversight will reduce daily workplace anxiety, boost operational speed, and noticeably improve talent retention by making employees feel valued.",
+    satisfactory:
+      'While employees are given the space to handle routine, low-risk responsibilities, a mediocre score suggests that true decision-making power remains tightly concentrated at the top, slowing down execution. Actively improving this aspect by mapping out clear "freedom parameters"—where staff can execute projects without seeking permission—and encouraging safe risk-taking will bridge this gap. Elevating autonomy here will unlock higher daily motivation, spark internal problem-solving, and boost overall job satisfaction.',
+    good: "The organization does a good job of honoring independence, with managers regularly providing the flexibility and trust required for employees to steer their own work. To fine-tune this success, leadership could optionally consider introducing output-driven frameworks (like OKRs) that focus entirely on results rather than methods, or offering advanced project-ownership training. These minor adjustments can turn a highly functional, trusted workforce into an exceptionally agile, self-directed team.",
+    excellent:
+      "The outstanding score demonstrates that your organization has built an elite culture of trust, treating employees as full owners of their domains with complete operational freedom. Leadership should maintain the status quo, champion this high-trust environment as a core corporate value, and protect it from organic bureaucracy as the company grows. A workplace that fiercely protects absolute individual autonomy is a powerful competitive advantage that drives massive innovation and keeps premium talent intensely loyal.",
+  },
+
+  "leadership-trust-in-employee-decisions": {
+    critical:
+      "This score points to a severe crisis of psychological safety and professional disrespect, indicating that leadership actively second-guesses, overrides, or dismisses employee decisions. Leadership must act with absolute urgency by auditing their approval pipelines, halting top-down micromanagement, and publicly backing employee choices. Rebuilding this baseline trust right away is vital to arrest plummeting morale, eliminate complete creative paralysis, and halt an imminent wave of resignations from insulted, high-potential talent.",
+    poor: 'The low score highlights significant cultural shortcomings, showing that while employees are allowed to make minor choices, leadership frequently displays skepticism, over-rules outcomes, or looks for blame when things go wrong. Leadership needs to introduce objective "trust boundaries"—clear zones where employee choices are final—and establish a constructive protocol for analyzing mistakes without finger-pointing. Eliminating this ambient skepticism will lower workplace anxiety, restore broken trust, and noticeably improve talent retention.',
+    satisfactory:
+      "While leadership baseline respects employee choices on routine tasks, a mediocre score suggests that trust vanishes whenever project stakes rise, causing executives to panic and strip away decision-making power. Actively improving this aspect by running alignment syncs before critical milestones and co-creating shared decision frameworks will bridge this gap. Transitioning away from reactive oversight will unlock higher daily motivation, build greater executive-team trust, and boost overall job satisfaction.",
+    good: "The leadership team does a good job of trusting employee judgment, giving staff the confidence and authority to steer projects and solve problems independently. To optimize this further, leadership could optionally consider introducing peer-led project approvals or formally expanding individual budget and strategic thresholds. These minor enhancements can help transition a naturally dependable, trusted team into a highly autonomous, self-correcting unit.",
+    excellent:
+      "The outstanding score proves that your organization operates with an elite standard of mutual respect, where leadership fiercely champions employee judgment and treats them as ultimate owners of their domains. Leadership should maintain the status quo, celebrate this high-trust culture as a core organizational asset, and protect it from restrictive bureaucracy as the company scales. This level of systemic trust is a massive competitive advantage that drives rapid innovation and keeps top performers intensely loyal.",
+  },
+
+  "salary-satisfaction": {
+    critical:
+      "This score points to a severe compensation crisis, indicating that employees feel drastically underpaid, financially stressed, or severely undervalued compared to their market worth. Leadership must act with absolute urgency by conducting an immediate market equity review, correcting blatant underpayment gaps, and adjusting base pay to meet industry benchmarks. Resolving this financial desperation right away is vital to halt plummeting morale, eliminate deep professional resentment, and stop an imminent wave of resignations that could cripple operations.",
+    poor: "The low score highlights significant compensation shortcomings, showing that while pay may cover absolute basics, it lags noticeably behind industry standards or fails to match the complexity of the workload. Leadership needs to introduce clear, transparent salary bands, outline predictable cost-of-living adjustments, and create a structured path for performance-based raises. Closing this financial gap will replace daily financial anxiety with a sense of fairness, restore internal trust, and noticeably improve talent retention.",
+    satisfactory:
+      "While the currently offered compensation is baseline acceptable, a mediocre score suggests that employees feel their pay is barely keeping pace with the market or doesn't fully reflect their daily contributions and extra efforts. Actively improving this aspect by reviewing performance bonuses, introducing robust spot rewards for high impact, and clarifying the financial trajectory of their roles will bridge this gap. Elevating pay perception here will unlock higher daily motivation, deepen employee commitment, and boost overall job satisfaction.",
+    good: "The organization does a good job of providing competitive compensation, allowing employees to feel financially secure and fairly rewarded for their expertise. To fine-tune this success, leadership could optionally consider enhancing the broader lifestyle benefits package, such as expanding wellness stipends, introducing profit-sharing models, or offering performance-linked equity. These small, high-value additions can turn a naturally fair base pay into a highly attractive, comprehensive rewards package.",
+    excellent:
+      "The outstanding score demonstrates that your organization has built an elite compensation structure that leads the market and leaves employees feeling deeply valued and securely rewarded. Leadership should maintain the status quo, run routine annual benchmarks to stay ahead of inflation and market shifts, and keep up the fantastic work. Offering a premium financial standard is a massive competitive advantage that completely eliminates salary-driven turnover and effortlessly attracts the industry's absolute top-tier talent.",
+  },
+
+  "total-compensation-fairness": {
+    critical:
+      "This score points to a severe total rewards crisis, indicating that employees feel heavily exploited, drastically undercompensated, or left behind by a package that fails to compete on any level with industry standards. Leadership must act with absolute urgency by auditing the entire rewards ecosystem, benchmarking total compensation against current market data, and immediately closing severe equity gaps. Correcting this stark deficit right away is vital to rescue crashing employee morale, eliminate intense institutional resentment, and halt a catastrophic wave of talent departures.",
+    poor: "The low score highlights significant structural shortcomings, showing that while base salaries might keep things afloat, the broader benefits and perks package is weak, outdated, or poorly structured compared to competitors. Leadership needs to conduct a comprehensive benefits review, look into introducing better health, wellness, or retirement options, and build transparent compensation bands. Bridging this market gap will replace daily financial anxiety with a baseline sense of professional fairness and noticeably improve talent retention.",
+    satisfactory:
+      "While total compensation is baseline acceptable, a mediocre score suggests that the package feels generic, uncompetitive, or unevenly distributed, leaving employees feeling that their total effort isn't fully reflected in their rewards. Actively improving this aspect by restructuring performance-based bonuses, introducing flexible, personalized perk selection (such as home-office or lifestyle stipends), and clearly communicating the full monetary value of their benefits will bridge this gap. Elevating equity perception here will unlock higher daily motivation and boost overall job satisfaction.",
+    good: "The organization does a good job of providing a balanced, competitive total rewards package that aligns well with industry standards and leaves employees feeling fairly valued. To fine-tune this success, leadership could optionally consider introducing long-term wealth accumulation incentives, such as employee stock options, profit-sharing models, or enhanced tuition reimbursement. These strategic additions can turn a standard, solid package into a highly attractive, comprehensive rewards portfolio.",
+    excellent:
+      "The An outstanding score proves that your organization has built a market-leading total compensation model that leaves staff feeling exceptionally valued, protected, and securely rewarded. Leadership should maintain the status quo, continue running routine annual market audits to stay ahead of industry shifts, and keep up the fantastic work. Delivering a premium, holistic standard of equity is a massive competitive advantage that completely neutralizes poaching from competitors and effortlessly retains top-tier global talent.",
+  },
+
+  "perks-benefits": {
+    critical:
+      "This score points to a severe benefits crisis, indicating that the organization's perks are either completely non-existent or so outdated that employees feel vulnerable, neglected, and exposed. Leadership must act with absolute urgency by auditing the core benefits package, ensuring basic essentials like adequate health coverage are met, and eliminating out-of-pocket professional burdens. Fixing this stark deficit right away is vital to rescue crashing employee morale, remove baseline lifestyle anxieties, and halt an imminent wave of resignations to competitors with basic modern safety nets.",
+    poor: "The low score highlights significant package shortcomings, showing that while absolute bare-minimum essentials might be covered, the overall perks are perceived as weak, restrictive, or uncompetitive. Leadership needs to refresh the benefits menu by introducing practical support systems, such as improved mental health resources, wellness stipends, or modern parental leaves. Closing these gaps will replace daily employee frustration with a sense of security, restore corporate goodwill, and noticeably improve talent retention.",
+    satisfactory:
+      'While the perks and benefits are baseline acceptable, a mediocre score suggests the current offerings feel generic, rigid, or disconnected from what employees actually need in their daily lives. Actively improving this aspect by shifting toward a flexible, "cafeteria-style" benefits model—where employees can choose between home-office stipends, learning budgets, or wellness credits—will bridge this gap. Elevating choice and relevance here will unlock higher daily motivation, maximize the actual utilization of corporate investments, and boost overall job satisfaction.',
+    good: "The organization does a good job of providing a comprehensive, attractive perks and benefits portfolio that goes beyond the industry average to support employees. To fine-tune this success, leadership could optionally consider introducing specialized lifestyle perks, such as identity-theft protection, corporate discounts, or flexible sabbatical policies for long-tenured staff. These thoughtful additions can turn a naturally solid benefits plan into a highly compelling, holistic wellness engine.",
+    excellent:
+      "The outstanding score demonstrates that your organization has built a world-class perks and benefits ecosystem that profoundly supports employees both inside and outside the workplace. Leadership should maintain the status quo, keep up the fantastic work, and protect these high-value offerings from short-sighted cost-cutting measures. Providing a premium, deeply empathetic safety net is a massive competitive advantage that creates intense employee loyalty and makes the company a premier destination for top-tier talent.",
+  },
+
+  "career-growth-satisfaction": {
+    critical:
+      "This score points to a severe talent stagnation crisis, indicating that employees feel completely trapped in dead-end roles with zero upward momentum or recognition for their tenure. Leadership must act with absolute urgency by auditing historical promotion data, addressing blocked advancement paths, and immediately advancing overlooked high performers. Fixing this complete developmental standstill right away is vital to arrest plummeting morale, eliminate professional despair, and halt an imminent wave of resignations from ambitious talent who feel completely invisible.",
+    poor: "The low score highlights significant structural shortcomings, showing that actual advancement is widely perceived as rare, agonizingly slow, or heavily driven by subjective politics rather than merit. Leadership needs to establish objective, data-driven promotion criteria, transparent evaluation timelines, and mandate regular progress reviews between managers and their teams. Removing this unpredictability will replace daily career anxiety with clear, achievable goals, restore organizational trust, and noticeably improve talent retention.",
+    satisfactory:
+      "While promotions do occur, a mediocre score suggests that career progression feels inconsistent, highly delayed, or disconnected from the employee's actual daily impact and expanded workloads. Actively improving this aspect by mapping out clearer mid-level career milestones and creating lateral growth paths—allowing employees to expand their scope when upward slots are limited—will bridge this gap. Elevating progression consistency here will unlock higher daily motivation, spark deeper dedication, and boost overall job satisfaction.",
+    good: "The organization does a good job of recognizing and advancing talent, providing a steady, encouraging upward trajectory for employees who deliver strong results. To fine-tune this success, leadership could optionally consider introducing accelerated progression tracks for elite performers or formalizing clear internal transfer pathways between different departments. These proactive adjustments can turn a naturally reliable promotion cadence into a highly dynamic, motivating growth ecosystem.",
+    excellent:
+      "The outstanding score demonstrates that your organization has built an exceptional, high-velocity growth culture where talent is rapidly recognized, rewarded, and elevated without friction. Leadership should maintain the status quo, protect this highly motivating meritocracy from organic bureaucracy, and keep up the fantastic work. A workplace that reliably delivers on the promise of career longevity and rapid upward mobility is an incredibly rare competitive advantage that keeps top-tier talent fiercely loyal.",
+  },
+
+  "learning-opportunities-frequency": {
+    critical:
+      "This score signals a severe professional stagnation crisis, indicating an environment where skill development is virtually non-existent, leaving employees feeling left behind and technologically or operationally obsolete. Leadership must act with absolute urgency by allocating baseline training budgets, introducing core skill workshops, and mandating dedicated time for professional development. Reversing this total intellectual standstill right away is vital to rescue crashing team morale, eliminate professional despair, and stop an imminent wave of resignations from talent who feel their careers are actively dying.",
+    poor: "The low score highlights significant developmental shortcomings, showing that learning opportunities are rare, sporadic, or treated as an afterthought that constantly takes a backseat to daily firefighting. Leadership needs to establish a predictable, recurring training calendar and guarantee a minimum number of protected learning hours per quarter for every employee. Moving past this educational neglect will replace workplace frustration with clear growth milestones, restore internal goodwill, and noticeably improve talent retention.",
+    satisfactory:
+      "While training sessions or learning resources are occasionally available, a mediocre score suggests that opportunities feel generic, infrequent, or difficult to access due to heavy, overlapping daily workloads. Actively improving this aspect by curating customized, on-demand learning paths tailored to specific roles and offering corporate subscriptions to premium educational platforms will bridge this gap. Elevating learning accessibility here will unlock higher daily motivation, spark creative problem-solving, and boost overall job satisfaction.",
+    good: 'The organization does a good job of prioritizing growth, regularly offering relevant workshops, lunch-and-learns, or certification opportunities that keep skills sharp. To fine-tune this success, leadership could optionally consider setting up structured internal mentorship pairings or building a cross-functional "skill-swap" framework to let employees learn adjacent disciplines directly from peers. These minor programmatic updates can turn a naturally solid training routine into a highly collaborative, continuous learning ecosystem.',
+    excellent:
+      "The outstanding score proves that your organization has built an elite, high-growth culture where continuous upskilling is deeply embedded in the daily workflow. Leadership should maintain the status quo, champion these knowledge-sharing dynamics as core corporate values, and ensure learning budgets remain robust during organizational shifts. A workplace that operates as a constant intellectual accelerator is a massive competitive advantage that drives elite-level innovation and keeps top-tier talent fiercely loyal.",
+  },
+
+  "learning-opportunities-quality": {
+    critical:
+      "This score signals a severe educational and skill crisis, indicating that the available training is completely useless, outdated, or fundamentally disconnected from real-world workflows. Leadership must act with absolute urgency by dismantling obsolete training programs, firing low-quality vendors, and co-designing fresh learning modules with current industry experts. Upgrading these flawed resources right away is vital to rescue crashing employee morale, eliminate the deep frustration of wasted time, and prevent an imminent wave of resignations from talent who refuse to let their professional skills degrade.",
+    poor: 'The low score highlights significant qualitative shortcomings, showing that while training exists, it is widely perceived as a superficial, "check-the-box" exercise that offers very little practical value or depth. Leadership needs to shift from generic, low-cost video courses to high-impact, hands-on workshops, and allocate individual training budgets that employees can spend on certified, premium industry education. Replacing low-effort content with rigorous development will restore internal trust, reduce professional anxiety, and noticeably improve talent retention.',
+    satisfactory:
+      "While the learning opportunities are baseline acceptable, a mediocre score suggests the content feels middle-of-the-road, highly theoretical, or missing the advanced, advanced-level insights required to truly elevate an employee's craft. Actively improving this aspect by shifting toward customized, role-specific learning paths, offering real-world case studies, and bringing in top-tier guest instructors will bridge this gap. Elevating training depth here will unlock higher daily motivation, maximize the actual return on corporate training investments, and boost overall job satisfaction.",
+    good: "The organization does a good job of delivering high-quality, engaging development programs that genuinely help employees sharpen their technical and soft skills. To fine-tune this success, leadership could optionally consider partnering with top-tier universities for executive or technical certificates, or introducing advanced project-simulation labs where teams can test complex strategies in a safe environment. These premium touchpoints can polish an already strong learning culture into an elite career-building engine.",
+    excellent:
+      "The outstanding score proves that your organization provides world-class, transformative educational opportunities that represent the absolute gold standard of professional upskilling. Leadership should maintain the status quo, continue backing these premium programs with robust financing, and leverage this exceptional curriculum during recruitment to attract elite performers. Operating as a premier, high-fidelity intellectual incubator is a massive competitive advantage that drives industry-leading innovation and keeps high-potential talent fiercely loyal.",
+  },
+
+  "growth-after-upskilling": {
+    critical:
+      "This score points to a severe retention and cultural crisis, indicating that employees who put in the effort to learn new skills find themselves completely stuck in the exact same positions with zero reward or recognition. Leadership must act with absolute urgency by auditing recently credentialed or upskilled staff, redesigning roles to match newly acquired capabilities, and establishing formal pathways for post-training advancement. Fixing this complete developmental bottleneck right away is vital to arrest plunging morale, eliminate intense professional frustration, and halt an imminent wave of resignations from your most ambitious, self-motivated talent who feel penalized for growing.",
+    poor: "The low score highlights significant structural shortcomings, showing that while upskilling is casually encouraged, the organization fails to provide internal mobility, leaving staff with no choice but to look outside the company to utilize their new talents. Leadership needs to introduce formal internal promotion policies tied directly to skill acquisition and mandate that managers map out new responsibilities once an employee completes advanced training. Eliminating this dead-end dynamic will restore broken trust, reduce career anxiety, and noticeably improve talent retention by proving that self-improvement leads to actual progression.",
+    satisfactory:
+      'While the organization baseline acknowledges upskilling, a mediocre score suggests that growth opportunities are inconsistent, highly delayed, or largely dependent on lucky timing rather than a structured internal pipeline. Actively improving this aspect by implementing an internal "talent marketplace"—where teams can post short-term stretch assignments or lateral projects for upskilled workers—will bridge this gap. Elevating post-training mobility here will unlock higher daily motivation, maximize the return on corporate training investments, and boost overall job satisfaction.',
+    good: 'The organization does a good job of rewarding self-improvement, regularly offering upward or lateral career shifts to employees who proactively expand their expertise. To fine-tune this success, leadership could optionally consider creating official "skill badges" or competency tiers that unlock automatic salary reviews or priority status for internal leadership vacancies. These structured touchpoints can help transition a naturally supportive culture into a highly dynamic, merit-based growth ecosystem.',
+    excellent:
+      "The outstanding score proves that your organization operates as a highly responsive talent accelerator, where self-driven upskilling is instantly met with tangible career advancement, expanded scope, and financial reward. Leadership should maintain the status quo, champion these high-growth dynamics as core corporate values, and keep up the fantastic work. Building a workplace that reliably and rapidly capitalizes on employee evolution is a massive competitive advantage that keeps your highest performers fiercely loyal and continuously innovative.",
+  },
+
+  "workload-manageability": {
+    critical:
+      "This score signals a severe operational crisis and an extreme burnout emergency, indicating that employees are drowning under unmanageable volumes of work, crushing deadlines, or unsustainable expectations. Leadership must act with absolute urgency by freezing non-essential projects, reassigning critical tasks, and implementing strict overwork boundaries. Intervening immediately to reduce this systemic pressure is vital to rescue crashing employee mental health, eliminate severe operational exhaustion, and halt an imminent wave of emergency resignations before your teams completely collapse.",
+    poor: "The low score highlights significant structural shortcomings, showing that while employees aren't entirely collapsed, they are routinely overworked, highly stressed, and operating with zero margin for error. Leadership needs to introduce objective capacity-planning tools, audit current resource allocations, and explicitly coach managers on how to push back on unrealistic stakeholder demands. Eliminating this chronic over-extension will lower baseline workplace anxiety, reduce high error rates caused by fatigue, and noticeably improve talent retention by giving teams breathing room.",
+    satisfactory:
+      'While the workload is generally tolerable, a mediocre score suggests that shifting project deadlines, sudden fire-fighting, or poorly planned surges frequently leave employees feeling stressed and on the edge of burnout. Actively improving this aspect by mapping out more accurate project timelines, establishing clear, asynchronous communication boundaries after hours, and standardizing "buffer time" between major deliverables will bridge this gap. Stabilizing the daily pace here will unlock higher daily motivation, improve the quality of output, and boost overall job satisfaction.',
+    good: "The organization does a good job of keeping workloads balanced, ensuring that employees can consistently deliver high-quality work within regular business hours without sacrificing their personal lives. To fine-tune this success, leadership could optionally consider introducing cross-training initiatives across teams to build internal backup coverage during seasonal peaks, or standardizing optional wellness days after massive product launches. These proactive measures can transition a healthy corporate environment into a highly sustainable, resilient workspace.",
+    excellent:
+      'The outstanding score proves that your organization has completely mastered resource allocation and capacity design, ensuring that tasks are perfectly tuned to individual bandwidth. Leadership should maintain the status quo, fiercely protect these sustainable boundaries against sudden "scope creep," and keep up the fantastic work. A corporate culture that respects human limits while maintaining strong output is an exceptionally rare asset that maximizes long-term productivity and keeps top performers intensely loyal.',
+  },
+
+  "overwhelming-workload-frequency": {
+    critical:
+      "This score signals a severe operational crisis and an extreme burnout emergency, indicating that employees are chronically overwhelmed and constantly drowning under unsustainable daily pressures. Leadership must act with absolute urgency by freezing non-essential projects, reassigning critical tasks, and implementing strict overwork boundaries. Intervening immediately to lift this crushing, continuous stress is vital to rescue crashing employee mental health, eliminate severe operational exhaustion, and halt an imminent wave of emergency resignations before your teams completely collapse.",
+    poor: "The low score highlights significant structural shortcomings, showing that employees frequently feel overwhelmed, highly stressed, and operating with zero margin for error. Leadership needs to introduce objective capacity-planning tools, audit current resource allocations, and explicitly coach managers on how to push back on unrealistic stakeholder demands. Reducing the frequency of these high-stress surges will lower baseline workplace anxiety, minimize error rates caused by fatigue, and noticeably improve talent retention by giving teams room to breathe.",
+    satisfactory:
+      'While the workload is tolerable on routine days, a mediocre score suggests that sudden firefighting, shifting project deadlines, or poorly planned surges too often leave employees feeling overwhelmed. Actively improving this aspect by mapping out more accurate project timelines, establishing clear boundaries for disconnecting after hours, and standardizing "buffer time" between major deliverables will bridge this gap. Stabilizing the pace of work here will unlock higher daily motivation, improve output quality, and boost overall job satisfaction.',
+    good: "The organization does a good job of keeping work balanced, ensuring that employees rarely feel overwhelmed and can consistently deliver high-quality output within regular business hours. To fine-tune this success, leadership could optionally consider introducing cross-training initiatives across teams to build internal backup coverage during seasonal peaks, or standardizing optional wellness days after massive product launches. These proactive measures can transition a healthy corporate environment into a highly sustainable, resilient workspace.",
+    excellent:
+      'The outstanding score proves that your organization has completely mastered resource allocation and capacity design, ensuring that employees almost never feel overwhelmed by their responsibilities. Leadership should maintain the status quo, fiercely protect these sustainable boundaries against sudden "scope creep," and keep up the fantastic work. A corporate culture that respects human limits while maintaining strong output is an exceptionally rare asset that maximizes long-term productivity and keeps top performers intensely loyal.',
+  },
+
+  "high-stress-burnout": {
+    critical:
+      "This score signals a severe operational crisis and an extreme, company-wide burnout emergency. Employees are drowning under constant, high-stakes pressure, and their physical and mental well-being is actively suffering. Leadership must intervene immediately by deploying an emergency workload freeze, auditing team capacities, and forcing managers to cut non-essential deliverables. Addressing this toxic level of chronic stress right away is critical to rescue crashing employee mental health, eliminate severe operational exhaustion, and halt an imminent wave of emergency resignations before your core teams completely collapse.",
+    poor: "The low score highlights significant structural and cultural shortcomings, showing that while employees aren't completely incapacitated, high stress and early signs of burnout are incredibly common. Leadership needs to introduce objective capacity-planning frameworks, review resource allocation, and explicitly coach managers on how to push back on unrealistic stakeholder demands. Actively lowering this baseline anxiety will minimize high error rates caused by fatigue, restore workplace morale, and noticeably improve long-term talent retention.",
+    satisfactory:
+      'While work is tolerable on regular days, a mediocre score suggests that sudden organizational shifts, poorly planned project surges, or constant firefighting frequently push employees into periods of high stress and exhaustion. Actively improving this aspect by mapping out more accurate project timelines, establishing clear boundaries against after-hours communication, and standardizing "buffer time" between major deliverables will bridge this gap. Stabilizing the daily pace here will unlock higher daily motivation, improve the quality of output, and boost overall job satisfaction.',
+    good: "The organization does a good job of keeping work balanced, ensuring that employee workloads rarely lead to high stress or physical exhaustion. To fine-tune this success, leadership could optionally consider introducing cross-training initiatives across departments to build internal backup coverage during seasonal peaks, or establishing automatic, optional wellness recovery days following massive product launches. These proactive measures can help transition a naturally healthy environment into a highly sustainable, resilient workspace.",
+    excellent:
+      'The outstanding score proves that your organization has completely mastered sustainable workload design, treating employee well-being as a top-tier operational priority. Leadership should maintain the status quo, fiercely protect these healthy boundaries against organic "scope creep," and keep up the fantastic work. A workplace that achieves strong results while keeping its teams fundamentally free from high stress and burnout is an exceptionally rare competitive asset that maximizes long-term productivity and keeps premier talent intensely loyal.',
+  },
+
+  "working-hours-satisfaction": {
+    critical:
+      "This score points to a severe scheduling and cultural crisis, indicating that employees feel trapped by punishing, unpredictable, or excessively long hours that completely destroy their personal lives. Leadership must act with absolute urgency by auditing actual logged hours, enforcing strict daily cutoff limits, and penalizing teams that mandate chronic overwork. Fixing this exploitative dynamic right away is vital to rescue crashing employee mental health, eliminate intense professional resentment, and halt an imminent wave of emergency departures before your workforce completely burns out.",
+    poor: "The low score highlights significant operational shortcomings, showing that while hours may not be entirely unlivable, late-night requests, weekend messages, and expected overtime are far too frequent. Leadership needs to introduce clear boundaries for disconnecting after hours, establish standard operating schedules, and coach managers to respect personal time. Eliminating this ambient scheduling pressure will lower daily employee anxiety, restore internal trust, and noticeably improve talent retention by giving people their evenings back.",
+    satisfactory:
+      "While working hours are baseline acceptable on paper, a mediocre score suggests that unexpected fire-drills, poorly managed global time-zone overlaps, or chronic staffing shortages frequently drag employees into working extra hours. Actively improving this aspect by implementing formal asynchronous work norms, standardizing core collaboration hours, and hiring temporary or permanent support to cover peak operational surges will bridge this gap. Stabilizing scheduling predictability here will unlock higher daily motivation and boost overall job satisfaction.",
+    good: "The organization does a good job of respecting standard business hours, ensuring that employees can consistently complete their tasks and close their laptops at a reasonable time. To fine-tune this success, leadership could optionally consider introducing modern scheduling flexibility, such as core-hours options (e.g., mandatory availability only between 10 AM and 3 PM, with flexibility around it) or compressed four-and-a-half-day workweeks. These proactive updates can turn a naturally healthy schedule into a highly compelling, modern workplace benefit.",
+    excellent:
+      'An outstanding score proves that your organization has built a premier culture of time respect, treating employee personal time as a sacred boundary while maintaining excellent operational output. Leadership should maintain the status quo, champion this healthy balance as a core corporate differentiator during recruitment, and protect these boundaries from organic "scope creep" as the business grows. Offering a workplace that genuinely values time-freedom is a massive competitive advantage that effortlessly keeps elite talent intensely loyal.',
+  },
+
+  "flexibility-level": {
+    critical:
+      'This score points to a severe cultural crisis of rigid control, indicating that employees face an unyielding, hyper-strict environment with zero grace for personal emergencies or alternative working arrangements. Leadership must act with absolute urgency by dismantling outdated "clock-punching" policies, eliminating arbitrary geographic or structural restrictions, and trusting teams to manage their time. Removing this intense micromanagement right away is vital to reverse plummeting morale, eliminate deep workplace resentment, and stop an imminent wave of resignations from talent who feel trapped.',
+    poor: "The low score highlights significant cultural shortcomings, showing that while absolute bare-minimum flexibility might be permitted on paper, requests for remote work, adjusted hours, or personal time off are met with skepticism, heavy red tape, or passive-aggressive penalties. Leadership needs to formalize transparent flexibility guidelines, establish clear core collaboration hours, and train managers to focus on outputs rather than visibility. Removing this underlying friction will lower daily anxiety, rebuild internal trust, and noticeably improve talent retention.",
+    satisfactory:
+      "While the organization offers baseline acceptable flexibility, a mediocre score suggests that policies are highly rigid, inconsistent across different departments, or restricted to very specific scenarios, leaving employees feeling slightly constrained. Actively improving this aspect by expanding asynchronous working options, allowing for fluid start and end times, and offering predictable hybrid choice models will bridge this gap. Elevating day-to-day autonomy over where and when work happens will unlock higher daily motivation and boost overall job satisfaction.",
+    good: 'The organization does a good job of providing meaningful flexibility, trusting employees to balance their personal lives with their professional commitments effectively. To fine-tune this success, leadership could optionally consider introducing advanced flexibility perks, such as fully remote "work from anywhere" weeks each year, or formalizing compressed workweek options. These modern touches can turn a naturally healthy, accommodating work culture into a highly agile, progressive workforce.',
+    excellent:
+      "The outstanding score demonstrates that your organization has built a world-class, ultra-flexible environment that treats employees with absolute trust as true owners of their schedules. Leadership should maintain the status quo, champion this high-trust freedom as a foundational corporate value during recruitment, and protect it from creeping bureaucracy as the company expands. Providing an elite standard of lifestyle integration is a massive competitive advantage that completely neutralizes poaching from competitors and keeps premium talent intensely loyal.",
+  },
+
+  "remote-hybrid-support": {
+    critical:
+      "This score points to a severe cultural and technological crisis, indicating an unyielding, hyper-strict mandate for 100% in-office presence with zero tolerance for alternative arrangements. Leadership must act with absolute urgency by dismantling rigid attendance tracking, piloting basic hybrid options, and investing in fundamental digital collaboration tools. Reversing this forced proximity right away is vital to arrest plummeting morale, eliminate intense organizational resentment, and halt an imminent wave of mass resignations from high-potential talent fleeing to modern, flexible employers.",
+    poor: "The low score highlights significant structural shortcomings, showing that while remote or hybrid work might be casually permitted on paper, requests are met with heavy skepticism, complex approval bottlenecks, or passive-aggressive visibility penalties. Leadership needs to formalize transparent hybrid policies, train managers to evaluate output over desk-time, and provide baseline home-office equipment stipends. Removing this underlying friction will lower daily workplace anxiety, rebuild internal trust, and noticeably improve talent retention.",
+    satisfactory:
+      'While remote or hybrid work is baseline available, a mediocre score suggests that the model is highly rigid (e.g., strictly mandated fixed days), plagued by inconsistent rules across different departments, or lacking proper asynchronous collaboration frameworks. Actively improving this aspect by shifting toward a fluid, "core-collaboration-days" model, standardizing digital documentation, and training teams on async workflow management will bridge this gap. Elevating day-to-day autonomy over where work happens will unlock higher daily motivation and boost overall job satisfaction.',
+    good: 'The organization does a good job of supporting remote and hybrid models, ensuring that employees have the digital tools, cultural trust, and physical freedom to balance office and home environments effectively. To fine-tune this success, leadership could optionally consider introducing advanced remote perks, such as "work from anywhere" weeks each year, or offering robust, recurring stipends for premium home-office ergonomic upgrades. These modern touches can help transition a naturally healthy structure into an ultra-agile, progressive workspace.',
+    excellent:
+      "The outstanding score proves that your organization has built a world-class, location-agnostic work ecosystem where remote and hybrid operations are seamlessly woven into the corporate DNA. Leadership should maintain the status quo, fiercely protect these modern boundaries against reactionary return-to-office trends, and keep up the fantastic work. Operating with an elite standard of digital-first trust is a massive competitive advantage that completely eliminates geographical hiring limitations and keeps premier talent intensely loyal.",
+  },
+
+  "leave-policy-satisfaction": {
+    critical:
+      "This score signals a severe cultural and structural crisis, indicating that the leave policy is either incredibly restrictive, severely lacking in days, or designed in a way that actively penalizes employees for taking time off. Leadership must act with absolute urgency by auditing total time-off allocations against basic industry standards, expanding baseline sick and vacation allowances, and explicitly banning retaliatory behavior toward those who use their leave. Fixing this deep deficit right away is vital to rescue crashing employee morale, eliminate intense personal resentment, and stop an imminent wave of resignations from talent fleeing to empathetic employers.",
+    poor: 'The low score highlights significant policy shortcomings, showing that while absolute bare-minimum leaves exist, the process for requesting time off is bogged down by excessive red tape, or a culture of "guilt-tripping" leaves employees afraid to use it. Leadership needs to streamline the approval process, clearly separate casual time off from emergency medical leaves, and mandate that managers model healthy behavior by taking time off themselves. Removing this systemic anxiety will replace frustration with a genuine sense of personal security and noticeably improve talent retention.',
+    satisfactory: `While the leave policy is baseline acceptable on paper, a mediocre score suggests that offerings feel generic, rigid, or insufficient when major life events happen (like family emergencies or personal burnout). Actively improving this aspect by introducing flexible mental health or "floating" wellness days, standardizing a seamless cross-coverage plan so employees don't return to an overwhelming mountain of work, and clarifying rollover rules will bridge this gap. Elevating time-off security here will unlock higher daily motivation and boost overall job satisfaction.`,
+    good: "The organization does a good job of providing a fair, adequate time-off package that allows employees to step away, recharge, and take care of personal matters without friction. To fine-tune this success, leadership could optionally consider introducing specialized leave types, such as paid volunteer days, extended bereavement coverage, or flexible parental leave top-ups. These thoughtful additions can easily turn a naturally solid policy into a highly attractive, holistic care package.",
+    excellent:
+      "The outstanding score proves that your organization has built a premier, deeply empathetic leave ecosystem that treats employee rest and personal life as top-tier corporate priorities. Leadership should maintain the status quo, protect these generous allowances from short-sighted cost-cutting measures, and keep up the fantastic work. Delivering a premium standard of time-off freedom is a massive competitive differentiator that fosters intense employee loyalty and effortlessly attracts elite, mature talent.",
+  },
+
+  "employee-personal-time": {
+    critical:
+      'This score signals a severe cultural and operational crisis, indicating that personal boundaries are non-existent and employees are expected to be constantly available. Leadership must act with absolute urgency by establishing strict "right to disconnect" guidelines, explicitly banning late-night or weekend work communications, and penalizing chronic boundary violations. Intervening immediately to halt this constant intrusion is vital to rescue crashing employee mental health, eliminate deep organizational resentment, and stop a catastrophic wave of burnout-driven resignations.',
+    poor: "The low score highlights significant cultural shortcomings, showing that while continuous availability isn't explicitly mandated, ambient pressure makes employees feel guilty for turning off notifications after hours. Leadership needs to implement clear, formal guidelines regarding acceptable response times, move away from urgent communication channels for routine matters, and train managers to schedule emails for the next business morning. Removing this underlying anxiety will restore broken internal trust, lower daily stress, and noticeably improve talent retention.",
+    satisfactory:
+      "While personal time is generally acknowledged, a mediocre score suggests that unexpected fire-drills, shifting project deadlines, or cross-timezone meetings frequently spill into evenings and weekends. Actively improving this aspect by defining strict asynchronous communication norms, establishing standard core collaboration hours, and building internal backup coverage for operational peaks will bridge this gap. Stabilizing boundary predictability here will unlock higher daily motivation, protect employee energy, and boost overall job satisfaction.",
+    good: 'The organization does a good job of respecting personal time, ensuring that employees can consistently step away from work and unplug at the end of the day without friction. To fine-tune this success, leadership could optionally consider standardizing "no-meeting Fridays" or introducing occasional company-wide "quiet weeks" to allow for deep, stress-free focus. These proactive measures can transition a naturally healthy environment into a highly resilient, sustainability-focused workspace.',
+    excellent:
+      'The outstanding score proves that your organization has built a premier culture of mutual respect, where personal time is treated as a sacred and non-negotiable boundary. Leadership should maintain the status quo, champion this supportive environment as a primary corporate differentiator during recruitment, and protect these boundaries from organic "scope creep" as the company grows. Offering a workplace that genuinely values and protects life outside of work is a massive competitive asset that keeps top-tier talent fiercely loyal.',
+  },
+
+  "comfort-in-sharing-opinions": {
+    critical:
+      "This score points to a severe psychological safety crisis, indicating an environment driven by fear where employees feel that speaking up will lead to swift retaliation, public humiliation, or professional damage. Leadership must act with absolute urgency by opening completely anonymous, third-party feedback loops, launching neutral compliance channels, and addressing managers who exhibit aggressive or silencing behaviors. Reversing this climate of fear right away is vital to uncover hidden operational risks, rescue crashing morale, and halt an imminent wave of resignations from talent who feel completely muted.",
+    poor: 'A score in this range highlights significant cultural and structural shortcomings, showing that while absolute retaliation might be rare, employee input is routinely ignored, dismissed, or met with passive-aggressive pushback. Leadership needs to establish structured, low-stakes feedback forums, implement mandatory "ideas roundtables," and explicitly train managers on active listening techniques. Removing this dismissive friction will lower daily workplace anxiety, rebuild fractured internal trust, and noticeably improve talent retention by proving that employee voices hold actual weight.',
+    satisfactory:
+      'While employees generally feel safe speaking up, a mediocre score suggests that sharing opinions feels useless because the organization rarely acts on feedback, leaving teams feeling like input is just a "check-the-box" exercise. Actively improving this aspect by instituting a transparent "Feedback-to-Action" tracker—where leadership publicly reviews suggestions and explains exactly what will be implemented, delayed, or declined—will bridge this gap. Elevating loop-closure here will unlock higher daily motivation, spark grassroots innovation, and boost overall job satisfaction.',
+    good: 'The organization does a good job of fostering an open dialogue, ensuring that employees can share constructive critiques or fresh ideas with their immediate teams and managers without hesitation. To fine-tune this success, leadership could optionally consider introducing cross-departmental innovation pitch competitions or setting up recurring "Skip-Level" listening sessions to connect frontline staff directly with executives. These intentional touchpoints can turn a naturally polite culture into a highly dynamic, highly collaborative ecosystem.',
+    excellent:
+      "An outstanding score demonstrates that your organization has built a gold-standard culture of radical transparency and psychological safety, where diverse perspectives are actively chased, celebrated, and integrated. Leadership should maintain the status quo, champion this open environment as a core corporate differentiator during recruitment, and fiercely protect these speaking boundaries against organic corporate bureaucracy. Operating as a high-trust, ideas-driven ecosystem is a massive competitive advantage that maximizes long-term innovation and keeps top performers intensely loyal.",
+  },
+
+  "contrarian-opinions-backlash-frequency": {
+    critical:
+      "This score points to a severe psychological safety crisis, indicating a culture of enforced conformity where challenging the status quo results in swift retaliation, professional alienation, or public hostility. Leadership must act with absolute urgency by launching anonymous feedback channels, initiating an independent cultural audit, and immediately addressing leaders who actively penalize dissent. Reversing this toxic dynamic right away is vital to expose hidden operational blind spots, rescue crashing morale, and halt an imminent wave of resignations from talent who refuse to operate in a culture of fear.",
+    poor: "A score in this range highlights significant cultural shortcomings, showing that while overt retaliation may be rare, expressing unpopular opinions leads to passive-aggressive exclusion, reputational labeling, or subtle career stalling. Leadership needs to introduce formal constructive dissent frameworks into major project evaluations, train managers on emotional regulation during critique, and explicitly reward productive skepticism. Removing this social penalty will lower workplace anxiety, rebuild fractured internal trust, and noticeably improve talent retention.",
+    satisfactory: `While the organization is baseline tolerant, a mediocre score suggests that sharing a contrarian view feels highly risky or exhausting, as employees must navigate intense defensiveness or bureaucratic friction to get their points across. Actively improving this aspect by embedding a formalized "Red Team" approach—where an individual or sub-team is explicitly assigned to play devil's advocate during decision-making—will bridge this gap. Transforming dissent from a personal risk into a structured process will unlock higher daily motivation and boost overall innovation.`,
+    good: 'The organization does a good job of welcoming diverse perspectives, ensuring that employees can question standard practices or propose alternative ideas without fearing social or professional blowback. To fine-tune this success, leadership could optionally consider introducing structured "Pre-Mortem" exercises for all major initiatives, creating a safe, regular ritual for examining potential failures before they happen. These proactive measures can transition a naturally polite culture into a highly resilient, intellectually honest workspace.',
+    excellent:
+      "An outstanding score proves that your organization has built an elite, truth-seeking culture that views contrarian insights not as insubordination, but as a critical mechanism for risk mitigation and innovation. Leadership should maintain the status quo, champion this rare level of intellectual freedom as a core recruitment advantage, and fiercely protect it as the organization scales. Operating a workplace that fundamentally decouples healthy debate from personal backlash is an exceptional competitive asset that ensures elite-level agility and keeps top performers intensely loyal.",
+  },
+
+  "safety-in-raising-concerns": {
+    critical:
+      "This score signals a severe psychological safety and compliance crisis, indicating a culture driven by fear where exposing issues leads to swift retaliation, professional targeting, or social isolation. Leadership must act with absolute urgency by establishing an entirely independent, third-party whistleblowing hotline, launching neutral compliance tracks, and immediately replacing leaders who silence or penalize employees. Reversing this hostile environment right away is critical to uncover severe, hidden liabilities, protect organizational integrity, and halt a wave of emergency exits from talent who feel unsafe.",
+    poor: 'A score in this range highlights significant cultural deficiencies, showing that while absolute termination might be rare, flagging problems results in subtle blacklisting, defensive pushback, or being labeled as "not a team player." Leadership needs to formalize transparent, non-retaliation policies, mandate clear timelines for investigating internal reports, and actively train managers to receive difficult feedback with composure. Eliminating this underlying professional risk will lower baseline employee anxiety, restore broken trust, and noticeably improve long-term retention.',
+    satisfactory:
+      'While employees feel baseline secure raising minor day-to-day issues, a mediocre score suggests that bringing up systemic flaws, ethical gray areas, or managerial shortcomings feels risky or politically exhausting. Actively improving this aspect by creating structured, recurring "retrospectives" across teams—where identifying failures is framed as a performance optimization ritual rather than a personal attack—will bridge this gap. Elevating transparency here will unlock higher daily motivation, catch operational defects early, and boost overall job satisfaction.',
+    good: "The organization does a good job of supporting transparency, ensuring that employees can point out operational bottlenecks or structural risks to their direct managers without fear of blowback. To fine-tune this success, leadership could optionally consider introducing regular, cross-departmental listening panels or setting up dedicated, anonymized feedback mechanisms directly monitored by neutral HR specialists. These proactive steps can help transition a naturally healthy, polite culture into a highly resilient, risk-aware environment.",
+    excellent:
+      "An outstanding score demonstrates that your organization has built a premier culture of total psychological safety and accountability, where flag-raising is actively celebrated as an act of corporate stewardship. Leadership should maintain the status quo, champion this transparent environment as a primary differentiator when recruiting elite talent, and fiercely protect these open communication pathways from creeping corporate bureaucracy. Operating a workplace that treats early warning signs as valuable assets is a massive competitive advantage that drives bulletproof innovation and keeps top performers intensely loyal.",
+  },
+
+  "employee-appreciation-frequency": {
+    critical:
+      "This score signals a severe cultural and appreciation crisis, indicating a completely thankless environment where employee efforts are entirely ignored or taken for granted. Leadership must act with absolute urgency by initiating immediate, public recognition campaigns for recent major milestones, setting up formal peer-to-peer recognition programs, and mandating that executives actively praise high-performing teams. Reversing this total vacuum of gratitude right away is vital to rescue crashing employee morale, eliminate deep professional resentment, and halt an imminent wave of resignations from talent who feel completely invisible.",
+    poor: 'A score in this range highlights significant cultural shortcomings, showing that recognition from leadership is exceedingly rare and usually reserved only for massive, company-wide product launches, leaving day-to-day contributions completely overlooked. Leadership needs to establish structured, monthly or quarterly recognition rituals, incorporate "shout-out" segments into all-hands meetings, and explicitly coach mid-level managers to pass credit upward. Eliminating this transactional approach to praise will lower daily workplace anxiety, rebuild fractured internal trust, and noticeably improve talent retention.',
+    satisfactory:
+      'While appreciation is occasionally expressed, a mediocre score suggests that leadership recognition is highly inconsistent, heavily prone to favoritism, or lacks actual substance (feeling like a "check-the-box" exercise). Actively improving this aspect by implementing a formalized, criteria-based rewards system—where appreciation is tied to specific, measurable business outcomes and cultural values rather than just visibility—will bridge this gap. Elevating fair and meaningful appreciation here will unlock higher daily motivation, reinforce positive work habits, and boost overall job satisfaction.',
+    good: "The organization does a good job of celebrating success, ensuring that employees regularly receive meaningful, timely praise from leadership for their hard work. To fine-tune this success, leadership could optionally consider introducing personalized appreciation tokens, such as spot bonuses, choice of high-impact stretch assignments, or tailored professional development stipends alongside verbal praise. These targeted rewards can help transition a naturally supportive culture into a highly dynamic, merit-based growth ecosystem.",
+    excellent:
+      "An outstanding score proves that your organization has built a world-class culture of gratitude and validation, where leadership actively uses appreciation to fuel daily performance and engagement. Leadership should maintain the status quo, champion this validating environment as a core corporate value during recruitment, and ensure that praise remains authentic and personalized as the company scales. Operating a workplace that reliably and visibly elevates its people is a massive competitive advantage that keeps your highest performers fiercely loyal and continuously innovative.",
+  },
+
+  "employee-appreciation-perception": {
+    critical:
+      "This score signals a severe cultural crisis, indicating a completely thankless environment where employees feel entirely invisible, undervalued, and taken for granted. Leadership must act with absolute urgency by auditing current recognition practices, mandating immediate manager-led appreciation check-ins, and implementing visible peer-to-peer shout-out channels. Intervening right away to bridge this deep validation deficit is vital to rescue crashing employee morale, eliminate toxic professional resentment, and halt an imminent wave of emergency resignations from talent who feel completely unseen.",
+    poor: "A score in this range highlights significant cultural shortcomings, showing that while employees aren't entirely alienated, they feel that their daily efforts and contributions are routinely overlooked. Leadership needs to establish structured, recurring recognition rituals—such as dedicated appreciation segments in team meetings—and coach managers on how to deliver specific, timely praise. Moving away from a transactional relationship with employee effort will lower baseline workplace anxiety, restore internal trust, and noticeably improve talent retention.",
+    satisfactory:
+      'While employees feel baseline appreciated, a mediocre score suggests that recognition feels highly inconsistent, prone to favoritism, or lacks actual substance (feeling like a "check-the-box" exercise). Actively improving this aspect by implementing a formalized, criteria-based appreciation framework—where praise is explicitly tied to unique individual impacts and core company values—will bridge this gap. Elevating the equity and personalization of appreciation here will unlock higher daily motivation and boost overall job satisfaction.',
+    good: "The organization does a good job of celebrating success, ensuring that employees consistently feel that their work matters and is recognized by their peers and leaders. To fine-tune this success, leadership could optionally consider backing up verbal appreciation with tangible growth opportunities, such as personalized professional development stipends, choice project assignments, or spot bonuses. These proactive additions can transition a naturally positive environment into a highly motivating, merit-based growth ecosystem.",
+    excellent:
+      "An outstanding score proves that your organization has completely mastered the culture of gratitude, creating an environment where employees feel deeply valued and profoundly connected to their work. Leadership should maintain the status quo, champion this validating culture as a primary corporate differentiator during recruitment, and fiercely protect it from slipping into impersonal bureaucracy as the company expands. Operating a workplace that reliably uplifts its people is an exceptionally rare competitive asset that maximizes long-term productivity and keeps premier talent intensely loyal.",
+  },
+
+  "voluntary-extra-effort": {
+    critical:
+      'This score signals a severe motivational crisis and widespread operational detachment, indicating that employees are actively "quiet quitting" or withholding effort out of deep fatigue or resentment. Leadership must act with absolute urgency by auditing basic workload structures, addressing toxic management, and pausing demanding targets. Intervening immediately to address the root causes of this systemic disengagement is vital to rescue crashing employee morale, fix operational slowdowns, and halt an imminent wave of resignations before the business suffers critical disruption.',
+    poor: "A score in this range highlights significant cultural shortcomings, showing that while employees do the absolute bare minimum required to keep their jobs, they have zero desire to go above and beyond due to ambient stress or a lack of incentive. Leadership needs to introduce clear career progression paths, audit compensation packages against industry baselines, and coach managers on how to foster a collaborative culture. Reigniting this underlying drive will lower daily operational friction, improve output consistency, and noticeably improve talent retention.",
+    satisfactory: `While employees are baseline compliant on routine tasks, a mediocre score suggests they are reluctant to volunteer extra effort during critical project pushes because they feel it won't be noticed or rewarded. Actively improving this aspect by establishing transparent "spot-bonus" programs, publicly celebrating those who carry heavy loads during peak periods, and ensuring extra effort directly translates to advancement will bridge this gap. Aligning effort with tangible outcomes here will unlock higher daily motivation and boost overall job satisfaction.`,
+    good: 'The organization does a good job of inspiring engagement, ensuring that employees are naturally invested in their roles and regularly willing to volunteer extra energy to see projects succeed. To fine-tune this success, leadership could optionally consider introducing cross-functional innovation labs or setting up autonomous "passion project" hours where teams can apply their extra drive toward organic internal improvements. These proactive measures can transition a highly cooperative workforce into a deeply innovative, self-propelled engine.',
+    excellent:
+      "An outstanding score proves that your organization has built a world-class culture of purpose and dedication, where employees feel deeply connected to the company's mission and routinely pour extra passion into their work. Leadership should maintain the status quo, fiercely protect this high-energy culture from exploitation by actively mandating rest periods, and keep up the fantastic work. A workforce that gives its best willingly is an exceptionally rare competitive asset that maximizes market agility and keeps top performers intensely loyal.",
+  },
+
+  "pride-in-organization": {
+    critical:
+      "This score points to a severe reputational and cultural crisis, indicating that employees are actively ashamed of where they work, likely due to public controversies, ethical failures, or a toxic internal environment. Leadership must act with absolute urgency by launching transparent internal town halls to address structural issues, committing to clear ethical transformations, and immediately correcting toxic executive behaviors. Reversing this deep-seated embarrassment is critical to stop catastrophic damage to employer branding, rescue crashing employee morale, and halt a mass exodus of talent fleeing to respectable competitors.",
+    poor: "A score in this range highlights significant identity and structural shortcomings, showing that while employees aren't openly hostile, they view the company merely as a transactional paycheck and feel no emotional connection or pride in its identity. Leadership needs to clarify the organization's core mission, communicate strategic direction transparently, and address lingering internal trust issues. Eliminating this ambient disconnect will lower daily workplace apathy, restore team cohesion, and noticeably improve talent retention by giving people a reason to care about their work.",
+    satisfactory:
+      "While employees are baseline content, a mediocre score suggests that the organization's purpose feels generic, disconnected from day-to-day work, or undermined by inconsistent execution. Actively improving this aspect by regularly connecting individual or team milestones to larger customer impacts, elevating corporate social responsibility initiatives, and closing the gap between stated company values and daily reality will bridge this gap. Cultivating genuine organizational alignment here will unlock higher daily motivation and boost overall job satisfaction.",
+    good: "The organization does a good job of building a positive reputation, ensuring that employees are genuinely proud to tell others where they work and feel connected to the company's market presence. To fine-tune this success, leadership could optionally consider launching internal brand-ambassador programs, supporting employee-led community service initiatives, or heavily investing in industry-thought-leadership opportunities. These intentional steps can help transition a naturally healthy company culture into a highly prestigious, unified community.",
+    excellent:
+      "An outstanding score proves that your organization has built a premier, purpose-driven brand that commands deep emotional investment and intense loyalty from its workforce. Leadership should maintain the status quo, champion this high-pride culture as your absolute greatest recruitment advantage, and protect these foundational values from being diluted by aggressive growth or corporate bureaucracy. Operating a workplace where employees feel profoundly honored to contribute is an exceptionally rare asset that drives elite execution and keeps top-tier talent fiercely loyal.",
+  },
+
+  "overall-satisfaction": {
+    critical:
+      "This score points to a critical structural and cultural crisis across the board, indicating that employees are deeply unhappy, disengaged, and likely actively looking for a way out. Leadership must intervene with absolute urgency by launching a rapid-response feedback audit to identify the root causes (whether it is bad management, toxic culture, poor pay, or severe burnout) and immediately rolling out visible, sweeping fixes. Correcting this foundational failure right away is vital to arrest plummeting morale, eliminate intense professional resentment, and stop a catastrophic wave of mass resignations.",
+    poor: "A score in this range highlights significant, widespread deficiencies, showing that the current workplace environment falls short of meeting basic employee expectations on a regular basis. Leadership needs to review core operational components—such as updating outdated tools, addressing unfair workloads, and retraining managers on empathetic leadership. Removing these daily friction points will lower baseline workplace anxiety, restore broken internal trust, and noticeably improve talent retention before early dissatisfaction turns into full-blown turnover.",
+    satisfactory:
+      'While the job is baseline tolerable, a mediocre score suggests that employees are stuck in a stagnant, uninspiring "middle ground" where work feels highly transactional and lacks genuine engagement. Actively improving this aspect by mapping out clear internal career progression pathways, investing in continuous professional development, and refining day-to-day team autonomy will bridge this gap. Elevating the daily work experience from merely acceptable to truly fulfilling will unlock higher daily motivation and boost overall job satisfaction.',
+    good: "The organization does a good job of providing a fulfilling work experience, ensuring that employees are generally happy, well-supported, and successful in their roles. To fine-tune this success, leadership could optionally consider introducing high-impact engagement perks, such as structured mentorship programs, choice rotation opportunities across departments, or personalized wellness allowances. These proactive touches can help transition a naturally healthy culture into a highly resilient, people-first workspace.",
+    excellent:
+      "An outstanding score demonstrates that your organization has built a premier, world-class work culture where employees feel deeply fulfilled, supported, and energized by their roles. Leadership should maintain the status quo, champion this high-satisfaction environment as your primary competitive advantage when recruiting elite industry talent, and fiercely protect it from creeping corporate bureaucracy as the company expands. Operating a workplace that reliably maximizes human happiness is an exceptionally rare asset that drives elite execution and keeps top performers intensely loyal.",
+  },
+
+  "willingness-to-stay": {
+    critical:
+      "This score signals a catastrophic retention crisis, indicating a workforce that feels deeply alienated, exhausted, or undervalued, with an exceptionally high risk of immediate, massive departures. Leadership must act with absolute urgency by conducting emergency exit interviews, reviewing compensation structures against market rates, and aggressively removing toxic managers. Intervening with immediate, highly visible cultural and structural changes is vital to stabilize operations, rescue crashing morale, and halt an imminent wave of resignations before critical team functions completely collapse.",
+    poor: `A score in this range highlights severe underlying instability, showing that while employees haven't walked out yet, a significant portion of your workforce is actively browsing job boards, interviewing elsewhere, or waiting for a viable exit. Leadership needs to swiftly introduce transparent internal career mobility paths, improve day-to-day work-life balance boundaries, and train managers to conduct proactive "stay interviews." Removing this quiet instability will restore faltering internal trust, lower organizational anxiety, and noticeably improve talent retention before passive looking turns into formal notices.`,
+    satisfactory:
+      "While current retention is baseline stable on paper, a mediocre score suggests that employees are highly vulnerable to being poached by competitors because they view their current role as temporary or stagnant. Actively improving this aspect by investing heavily in long-term upskilling programs, clarifying equity or performance-based bonus structures, and formalizing individual growth roadmaps will bridge this gap. Giving employees a clear, compelling reason to see their professional future within your company will unlock higher daily motivation and boost overall job satisfaction.",
+    good: "The organization does a good job of creating a sticky environment, ensuring that the vast majority of employees feel secure, content, and naturally inclined to build a steady career with the company. To fine-tune this success, leadership could optionally consider introducing tenure-based milestones, such as sabbatical opportunities, advanced leadership development tracks, or loyalty-driven equity refreshes. These proactive measures can help transition a naturally healthy, low-turnover culture into a highly resilient, long-term talent stronghold.",
+    excellent:
+      "An outstanding score proves that your organization has built a premier, world-class talent haven where employees feel deeply committed to the company's long-term trajectory. Leadership should maintain the status quo, champion this extraordinary loyalty as a core employer brand differentiator when recruiting top-tier industry professionals, and fiercely protect these cultural foundations from being diluted by rapid scaling. Operating a workplace where elite talent genuinely wants to build their life's work is an exceptionally rare competitive asset that ensures bulletproof operational continuity.",
+  },
+};
+
+export const generateSuggestionsForCruxScores = (
   cruxesWithScores: Record<
     string,
     {
       metric: string;
       crux: string;
       score: number;
+      remark: "critical" | "poor" | "satisfactory" | "good" | "excellent";
     } & { [K: string]: unknown }
   >,
 ) => {
-  Object.values(cruxesWithScores).forEach((cruxResult) => {
-    if (cruxResult.crux === "unfair-discrimination") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe breakdown in workplace safety and inclusivity, indicating that unfair discrimination is actively harming your workforce. Leadership must intervene immediately by conducting external, confidential audits and enforcing a zero-tolerance policy. Team building exercises could prove effective in uprooting personal differences or grudges. Addressing this right away is critical to stop toxic behavior, protect your employees' mental well-being, foster an amicable workplace environment, and prevent costly legal liabilities or a total collapse in talent retention.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "This score highlights significant gaps in fairness, suggesting that bias or discriminatory behavior is noticeably affecting the daily employee experience to a great extent. Leadership needs to implement mandatory, actionable anti-bias training while establishing clear, safe reporting channels. Rooting out these shortcomings will rebuild trust, make employees feel valued, and significantly reduce the turnover and burnout caused by an unsupportive environment.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While the workplace is baseline compliant, a mediocre score here shows that subtle biases, passive-aggressive interactions, or microaggressions are likely keeping the environment from being truly amicable and supportive. Actively leveling up by hosting open-door feedback forums and reviewing promotion fairness will transform the culture from just "tolerable" to genuinely supportive. This proactive push will boost overall team morale, spark greater collaboration, and help employees fully engage with their work.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The workplace is doing well in preventing discrimination, but there is still room to fine-tune the culture. Leadership could optionally consider introducing voluntary mentorship programs, employee-led team coordination exercises, etc., to further strengthen community bonds. These extra steps can elevate a healthy workplace into a highly attractive, premium environment for top-tier talent.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "An outstanding score here proves that your managers and teams have successfully built a safe, equitable, and deeply respectful culture. Leadership should maintain the status quo and keep up the great work by continuing to champion these exact values in everyday operations. Your current approach is a major asset for retaining your best people—keep doing exactly what you are doing.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "workplace-isolation") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis, meaning employees feel deeply cut off and invisible to their teams and managers. Leadership must treat this with absolute urgency and immediately establish mandatory one-on-one check-ins and structured team touchpoints. Recreational team-building activities are highly advised. Breaking through this extreme isolation right away will rescue plummeting morale, protect employee mental health, and prevent a wave of sudden resignations.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "This score shows noticeable gaps in workplace connection, indicating that a lack of communication or fragmented remote/hybrid setups are leaving employees out in the cold. Leadership should introduce regular team syncs and clear communication guidelines to bridge these gaps. Actively fixing these shortcomings will rebuild team cohesion, reduce the anxiety of working in a vacuum, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While employees aren't entirely stranded, communication is likely purely transactional, leaving them feeling only loosely tied to the organization. Intentionally improving this aspect by organizing cross-functional projects or casual virtual coffee chats will strengthen professional relationships. Stepping up connection here will unlock better collaboration, make people feel like they belong, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The workplace has a healthy level of connection, but leadership could optionally introduce a few creative tweaks to make it even better. For instance, you might consider setting up voluntary peer-buddy systems for new hires or hosting occasional informal team-building events. These optional actions can further solidify work friendships and turn a good environment into an incredibly sticky one for top performers.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "An outstanding score here proves your workplace is a highly connected community where employees feel deeply supported and included by peers and superiors alike. Leadership should maintain the status quo, protect the open culture you have built, and keep it up. Your current approach is highly effective at making people feel valued and keeping talent from looking elsewhere.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "fair-equal-treatment") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score indicates a critical crisis where favoritism, bias, or glaring inequality are deeply entrenched in the daily workplace experience. Leadership must treat this with immediate urgency by launching an independent review of internal practices and standardizing how promotions, workloads, and disciplinary actions are handled. Correcting these severe flaws right away is vital to stop rapidly spreading resentment, avoid legal risks, and halt a costly mass exodus of talent.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "A score in this range highlights significant shortcomings, showing that employees widely perceive inconsistencies and unfairness in how people are treated. Leadership needs to establish transparent guidelines for performance evaluations and ensure objective metrics are used across all teams. Remedying these gaps will restore broken trust, boost lagging morale, and significantly improve talent retention by showing the team that hard work—not politics—matters.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While there are no blatant violations, a mediocre score here suggests that subtle biases or inconsistent management styles are keeping the playing field from being truly level. Improving this aspect by introducing regular, standardized check-ins and objective criteria for workplace rewards will make the environment noticeably fairer. Elevating your equity practices here will unlock higher motivation, foster healthier collaboration, and increase overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization generally does a good job of maintaining fairness, but there are optional steps that could refine the experience even further. Leadership might consider offering voluntary leadership workshops focused on objective decision-making, or creating an employee advisory panel to regularly review internal policies. These extra steps can help polish a good culture into an industry-leading standard for fairness.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "An outstanding score demonstrates that your workplace has successfully built a deeply rooted culture of genuine equality and respect across all levels of the hierarchy. Leadership should maintain the status quo, continue reinforcing these transparent practices, and keep up the fantastic work. Your commitment to fairness is a massive competitive advantage for retaining your best people and attracting top-tier talent.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "office-politics-prevalence") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis where toxic favoritism, backstabbing, and hidden agendas completely dominate the workplace culture. Leadership must act with absolute urgency to dismantle this environment by making all promotional tracks completely transparent and holding manipulative behaviors strictly accountable. Eradicating this severe issue immediately will rescue tanking morale, restore psychological safety, and stop a damaging drain of your best talent.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "This score points to significant shortcomings, indicating that employees feel they must navigate alliances and gossip rather than rely on hard work to get ahead. Leadership needs to address this by standardizing performance evaluations and clarifying decision-making processes so they cannot be bypassed by personal relationships. Eliminating these political roadblocks will rebuild trust in leadership, reduce workplace anxiety, and noticeably improve employee retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the environment isn't completely toxic, a mediocre score shows that behind-the-scenes maneuvering still influences daily operations and causes mild frustration. Actively improving this aspect by opening up direct lines of communication and ensuring leadership decisions are thoroughly explained to all teams will minimize the rumor mill. Taking these steps will level the playing field, boost overall job satisfaction, and allow teams to focus on actual performance rather than posturing.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The workplace is doing a good job of keeping political maneuvering to a minimum, allowing for a generally transparent environment. To fine-tune this, leadership could optionally consider introducing cross-departmental collaboration goals or voluntary workshops on constructive conflict resolution. These minor steps can further solidify team unity and ensure a healthy, cooperative culture remains the norm.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "An outstanding score here proves that you have successfully built a merit-based, transparent culture where work speaks for itself and office politics are virtually non-existent. Leadership should maintain the status quo, continue leading with openness, and keep up the great work. This clean, politics-free environment is a massive asset for employee well-being and a primary reason your top talent stays with the company.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "office-politics-negative-impact") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score indicates that office politics are severely damaging meritocracy, employee well-being, driving division, and eroding trust across the company. Leadership must intervene immediately by launching anonymous feedback channels, establishing strict behavioral guidelines, and clarifying exactly how major business decisions are made. Stopping this toxic impact right away is critical to prevent total burnout, rescue tanking morale, and halt an imminent wave of resignations.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "This score shows that political maneuvering is actively dragging down the workplace, making employees feel that personal connections matter more than performance. Leadership needs to introduce clear, standardized metrics for promotions and rewards to eliminate any perception of favoritism. Fixing these shortcomings will restore meritocracy, trust in management, reduce daily anxiety, and improve talent retention by leveling the playing field.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the environment is mostly stable, politics still occasionally disrupt focus, cause frustration, or mask individual contributions. Actively improving this aspect by hosting open Q&A sessions with leadership and sharing team goals transparently will clear the air. Making these proactive improvements will boost overall job satisfaction, foster cleaner collaboration, and ensure everyone feels valued for their actual work.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The workplace is doing a good job of keeping the harmful side of office politics at bay, allowing for a generally transparent atmosphere. To optimize this, leadership could optionally consider introducing cross-functional team projects to break down remaining silos or offering voluntary communication workshops. These minor steps can further strengthen company culture and keep the team aligned around shared goals.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "An outstanding score here proves your workplace is exceptionally resilient against political friction, creating a healthy, transparent, and merit-based environment. Leadership should maintain the status quo, protect these open communication practices, and keep up the great work. This strong shield against office politics is a massive asset that keeps your top talent engaged and loyal to the company.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "managers-general-efficacy") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe leadership crisis, indicating that poor management is actively harming daily operations, confusing teams, and driving down performance. Leadership must act with absolute urgency by stepping in with immediate management interventions, conducting 360-degree reviews, and providing intensive performance coaching. Correcting these critical leadership flaws right away is vital to stop rapidly spreading frustration, rescue crashing productivity, and prevent widespread talent drain.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, showing that direct managers are missing the core skills needed to effectively guide, communicate with, or support their teams. Leadership needs to introduce structured management training programs that focus on clear goal-setting, empathy, and constructive feedback. Resolving these gaps will restore team confidence, reduce operational friction, and noticeably improve employee retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While managers are keeping things functional, a mediocre score suggests they are operating mostly as task-assigners rather than effective leaders who inspire and develop their people. Actively improving this aspect by providing managers with advanced leadership workshops and better resources for tracking team milestones will bridge this gap. Elevating management skills here will boost overall team morale, spark higher engagement, and unlock greater project success.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Direct managers are doing a good job of leading their teams and keeping operations running smoothly, but there are optional steps to refine their impact. Leadership could consider offering voluntary mentorship matching for newer managers or supporting enrollment in external professional leadership networks. These extra steps can help polish strong managers into truly exceptional mentors, making the company even more attractive to top talent.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your direct managers are highly effective leaders who consistently support, empower, and guide their teams to success. Leadership should maintain the status quo, continue trusting their management styles, and keep up the fantastic work. Having such a capable management tier is a major competitive advantage and a primary reason your best people stay with the organization.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "managers-tasks-efficacy") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe breakdown in operational execution, meaning tasks are frequently missed, deadlines are completely unmanaged, and team productivity has collapsed. Leadership must intervene immediately by establishing strict daily tracking protocols, re-evaluating baseline project scopes, and training managers on basic workflow management. Fixing this operational emergency right away is critical to restore client trust, eliminate extreme team frustration, and prevent massive revenue and talent loss.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "A score in this range highlights noticeable shortcomings, indicating that bottlenecks, poor delegation, or a lack of clear accountability are consistently stalling project completion. Leadership needs to implement standardized project management tools and train managers on how to set clear, realistic deadlines. Resolving these coordination gaps will drastically reduce workplace stress, minimize chaotic last-minute rushes, and improve overall talent retention by creating a more predictable work environment.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the team manages to cross the finish line, a mediocre score shows that task completion is likely inefficient, stressful, or overly reliant on constant reminders. Actively improving this aspect by providing managers with training on resource allocation and agile workflows will streamline operations. Elevating execution here will alleviate teammate burnout, boost daily project momentum, and increase overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Managers are doing a good job of keeping projects moving and ensuring the team hits its targets on time. To fine-tune this success, leadership could optionally consider introducing collaborative goal-setting frameworks like OKRs (Objectives and Key Results) or sponsoring advanced project management certifications. These minor updates can turn a reliable delivery process into a highly streamlined, high-output engine.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your managers are master executors who keep teams flawlessly aligned, organized, and accountable without micromanaging. Leadership should maintain the status quo, document these successful workflows as company-wide best practices, and keep up the great work. This level of operational efficiency is rare and acts as a major driver for keeping high-performing talent engaged and satisfied.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "mentorship-frequency") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe crisis of neglect, indicating that employees feel entirely abandoned and left to figure out their roles with no guidance from leadership. Management must act with absolute urgency by mandating weekly one-on-one professional development check-ins and creating immediate feedback loops. Solving this critical issue right away will rescue crashing morale, prevent costly onboarding failures, and stop an imminent wave of resignations from frustrated staff.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, showing that mentorship is rare, inconsistent, or only happens when something goes wrong. Leadership needs to establish clear guidelines for how often managers should connect with their teams regarding career growth and skill-building. Bridging these gaps will rebuild employee confidence, ease the anxiety of working in isolation, and noticeably improve talent retention by proving the company cares about their future.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While basic operational instructions are being given, a mediocre score here shows that meaningful mentorship and professional guidance are largely missing from the employee experience. Actively improving this aspect by setting up formal quarterly growth reviews and training superiors on how to coach effectively will bridge this gap. Taking these proactive steps will unlock higher motivation, accelerate employee skill development, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Superiors are doing a good job of providing regular support and guiding their teams, but there are optional ways to elevate the experience. Leadership could consider introducing a formal cross-departmental mentoring program or launching a voluntary digital platform to track professional milestones. These minor initiatives can further enrich the company culture and help polish high-potential employees into future leaders.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your leaders are exceptionally dedicated mentors who consistently invest time in guiding and supporting their teams. Leadership should maintain the status quo and keep up the amazing work by continuing to nurture this deeply supportive environment. This strong culture of continuous mentorship is a massive competitive advantage and a primary reason top-tier talent stays loyal to your organization.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "mentorship-quality") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis where the guidance provided by superiors is perceived as unhelpful, counterproductive, or actively damaging to employee growth. Leadership must intervene with absolute urgency by revamping management expectations, establishing anonymous feedback loops, and providing intensive coaching on how to lead effectively. Addressing this toxic gap immediately will salvage tanking morale, protect employee mental health, and halt a critical drain of frustrated talent.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score points to significant shortcomings, indicating that while guidance may be offered, it lacks the depth, clarity, or constructive nature needed to help employees succeed. Leadership needs to introduce structured training for managers that focuses on active listening, empathetic coaching, and actionable feedback delivery. Correcting these quality issues will restore broken trust, reduce daily frustration, and noticeably improve talent retention by showing employees their professional development is taken seriously.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the mentorship provided is baseline acceptable, a mediocre score here shows that guidance is likely generic, transactional, or failing to truly challenge and inspire employees. Actively improving this aspect by equipping managers with advanced professional development frameworks and encouraging highly tailored career growth conversations will bridge this gap. Elevating the caliber of mentorship will unlock higher engagement, accelerate skill progression, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Superiors are doing a good job of delivering meaningful, high-quality advice that effectively supports their teams' day-to-day needs. To further optimize this, leadership could optionally consider introducing 360-degree leadership feedback tools or providing managers with budgets to attend executive coaching workshops. These optional steps can help transition solid mentors into truly inspirational leaders.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your superiors are providing exceptional, top-tier mentorship that leaves employees feeling deeply supported, valued, and empowered to grow. Leadership should maintain the status quo, celebrate these exemplary leaders, and keep up the fantastic work. This culture of high-caliber mentorship is a massive asset that makes your organization highly attractive to ambitious, top-performing talent.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "task-clarity-frequency") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score indicates a critical operational failure where employees are left completely in the dark, leading to widespread confusion, wasted effort, and high anxiety. Leadership must intervene immediately by mandating daily or project-kickoff syncs and introducing standardized briefs for every assignment. Resolving this severe bottleneck right away is crucial to prevent operational errors, rescue crashing productivity, and stop an imminent wave of resignations driven by sheer frustration.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, showing that task instructions are frequently vague, incomplete, or changing without notice. Leadership needs to implement clear documentation practices and train managers on how to define explicit success metrics and deadlines for every project. Fixing these communication gaps will eliminate daily guesswork, reduce operational friction, and noticeably improve talent retention by creating a stable work environment.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While employees generally know what to do, a mediocre score suggests that instructions are often delivered on an ad-hoc basis, causing occasional delays or misalignments. Actively improving this aspect by establishing standardized project planning templates and holding regular sprint reviews will ensure consistency. Elevating clarity here will streamline workflows, alleviate team stress, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Managers are doing a good job of providing regular, clear expectations, allowing projects to run relatively smoothly. To fine-tune this setup, leadership could optionally consider introducing collaborative task-tracking software or hosting brief, voluntary workshops on writing effective action items. These minor adjustments can turn a good workflow into an exceptionally fast, agile execution engine.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "An outstanding score demonstrates that your managers are exceptional communicators who consistently set crystal-clear goals and directions for their teams. Leadership should maintain the status quo, document these communication styles as the gold standard for the company, and keep up the fantastic work. This level of clarity keeps teams highly motivated, eliminates burnout, and acts as a major driver for keeping your best talent long-term.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "leadership-communication-frequency") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis where leadership is perceived as entirely absent or invisible, leaving the workforce feeling disconnected, anxious, and dangerously out of the loop. Management must act with absolute urgency by establishing immediate, fixed touchpoints such as bi-weekly town halls or weekly email updates. Re-establishing this vital lifeline right away will dispel damaging rumors, rescue crashing morale, and prevent a rapid loss of talent driven by a total lack of direction.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score points to significant shortcomings, indicating that updates from executives are too rare and inconsistent to keep employees aligned with the company's direction. Leadership needs to formalize a steady communication cadence, such as monthly organizational wrap-ups or regular video briefs. Bridging these communication gaps will eliminate widespread guesswork, rebuild trust in institutional stability, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the executive team isn't entirely silent, a mediocre score here shows that updates are likely reactive, ad-hoc, or failing to cut through the noise to reach all departments. Actively improving this aspect by standardizing a regular cross-company newsletter or implementing feedback-driven Q&A slots will bridge this gap. Elevating the frequency of these interactions will boost daily alignment, strengthen company culture, and increase overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The leadership team does a good job of keeping the organization informed and maintains a healthy, regular presence. To optimize this further, leadership could optionally consider introducing informal "coffee chats" with executives or opening a digital suggestion box for steady, low-friction feedback. These extra steps can turn a solid communication loop into a highly collaborative, transparent culture.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "An outstanding score demonstrates that your executive team has mastered organizational communication, keeping employees feeling consistently informed, aligned, and included. Leadership should maintain the status quo, continue leading with this stellar standard of openness, and keep up the fantastic work. This level of steady, proactive transparency is a massive competitive advantage for keeping your best people engaged and loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "leadership-communication-quality") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis where executive communication is perceived as confusing, dishonest, or entirely tone-deaf, creating deep distress and paranoia across the workforce. Leadership must act with absolute urgency by revamping their messaging style to prioritize radical transparency, empathy, and absolute clarity. Fixing this broken trust immediately is critical to salvage plummeting organizational morale, protect the company's internal reputation, and stop an imminent wave of resignations.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score points to significant shortcomings, indicating that while leadership communicates, the messages are often vague, overly corporate, or fail to address what employees actually care about. Leadership needs to focus on delivering more genuine, direct updates that clearly connect company decisions to the daily realities of the staff. Eliminating this corporate fluff will restore broken trust, reduce workplace anxiety, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While updates are baseline informative, a mediocre score here shows that leadership communication is likely dry, one-way, or failing to truly inspire and align the team. Actively improving this aspect by shifting to a more conversational tone, using storytelling, and introducing interactive elements like live Q&As will bridge this gap. Elevating the quality of these messages will spark higher employee engagement, strengthen company unity, and increase overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The leadership team does a good job of delivering high-quality, meaningful updates that keep the organization well-aligned. To optimize this further, leadership could optionally consider introducing multi-media formats—like brief video recaps alongside text—or providing managers with talking points to help unpack big announcements with their teams. These minor enhancements can turn standard updates into highly memorable, motivating moments.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "Teh outstanding score proves that your executive team communicates with exceptional clarity, empathy, and integrity, making every employee feel respected and inspired. Leadership should maintain the status quo, protect this culture of open and authentic dialogue, and keep up the fantastic work. This elite level of communication quality is a rare asset that drives massive employee loyalty and keeps your top performers deeply committed to the company's vision.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "feedback-frequency") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe crisis of isolation, indicating that employees are working in a complete vacuum with no idea how they are performing until it is too late. Leadership must act with absolute urgency by mandating regular, scheduled performance touchpoints and integrating brief feedback loops into weekly workflows. Resolving this critical gap immediately is vital to rescue crashing morale, correct costly performance errors early, and halt an imminent wave of resignations from frustrated staff.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, showing that feedback is rare, inconsistent, or only given during annual reviews or when a major mistake occurs. Leadership needs to establish clear guidelines for managers to provide consistent monthly or bi-weekly check-ins. Bridging these communication gaps will eliminate daily performance anxiety, rebuild employee confidence, and noticeably improve talent retention by proving the company is invested in their growth.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While employees receive occasional updates on their work, a mediocre score suggests that feedback is ad-hoc, sparse, or primarily focused on short-term project tasks rather than continuous development. Actively improving this aspect by standardizing brief monthly check-ins and creating predictable feedback cadences will bridge this gap. Elevating the frequency of these conversations will unlock higher day-to-day motivation, accelerate skill progression, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Managers are doing a good job of keeping their teams informed with steady, regular feedback on their performance. To fine-tune this setup, leadership could optionally consider introducing lightweight, real-time feedback tools or peer-to-peer recognition platforms to supplement structured manager reviews. These minor additions can turn a good feedback loop into a highly dynamic, continuous learning culture.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has built a stellar culture of continuous communication, where employees feel consistently guided, seen, and supported. Leadership should maintain the status quo, protect these highly effective check-in habits, and keep up the fantastic work. This level of steady, proactive feedback is a massive asset that keeps top talent highly engaged and deeply loyal to the company.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "feedback-quality") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis where the feedback provided is perceived as hurtful, completely unhelpful, or purely punitive, leaving employees feeling attacked rather than supported. Leadership must intervene with absolute urgency by launching intensive training for managers on how to deliver constructive, respectful critiques. Correcting this critical issue right away is vital to rescue plummeting morale, protect employee mental health, and stop a damaging drain of your best talent.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, indicating that while feedback is given, it is often too vague, generalized, or lacks actionable steps for improvement. Leadership needs to implement structured feedback frameworks that require managers to provide specific examples and clear next steps. Fixing these quality gaps will eliminate performance confusion, reduce workplace frustration, and noticeably improve employee retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the feedback provided is baseline acceptable, a mediocre score shows that insights are likely transactional, generic, or failing to truly stretch and develop employees' skills. Actively improving this aspect by training managers on growth-oriented coaching and behavior-focused feedback techniques will bridge this gap. Elevating the caliber of these evaluations will spark higher daily motivation, accelerate professional development, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Managers are doing a good job of delivering meaningful, high-quality advice that effectively helps their teams navigate their roles. To optimize this further, leadership could optionally consider introducing 360-degree feedback tools or offering voluntary workshops on how to receive and act on critiques. These minor additions can help transition solid feedback loops into a highly sophisticated, continuous learning culture.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your leaders are delivering exceptional, top-tier feedback that leaves employees feeling deeply empowered, valued, and clear on their path forward. Leadership should maintain the status quo, celebrate these exemplary coaching habits, and keep up the fantastic work. This culture of high-quality guidance is a massive competitive advantage for keeping top-performing talent highly engaged and loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "leadership-transparency") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe trust crisis, indicating that employees feel intentionally misled, excluded from critical information, or completely kept in the dark. Leadership must intervene with absolute urgency by opening direct lines of communication, addressing hard truths openly, and dismantling the culture of secrecy. Rebuilding transparency immediately is vital to clear out toxic rumors, rescue collapsing morale, and prevent a massive and costly loss of talent.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            'The low score highlights significant shortcomings, showing that communication is heavily gatekept, making teams feel sidelined or caught off guard by sudden shifts. Leadership needs to establish clear, predictable updates detailing the "why" behind major organizational decisions and changes. Fixing these transparency gaps will restore broken trust, lower daily workplace anxiety, and noticeably improve talent retention.';
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While there are no blatant deceits, a mediocre score shows that information is shared strictly on a need-to-know basis, leaving employees feeling disconnected from the company’s bigger picture. Actively improving this aspect by sharing strategic goals, business performance metrics, and upcoming plans more freely will bridge this gap. Elevating transparency here will boost team alignment, foster deeper organizational pride, and increase overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The leadership team does a good job of keeping operations transparent and honest, allowing for a generally trusting work environment. To optimize this further, leadership could optionally consider hosting informal "ask-me-anything" (AMA) sessions or publishing leadership meeting highlights for interested staff. These minor enhancements can turn a good culture into an exceptionally open, high-trust environment.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your leaders operate with exceptional integrity, honesty, and openness, making teams feel deeply respected and secure. Leadership should maintain the status quo, continue leading with this admirable standard of clarity, and keep up the great work. This high level of genuine transparency is a massive asset that builds fierce employee loyalty and keeps your top talent completely committed to the company.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "leadership-accountability") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe crisis of integrity, indicating that upper management is perceived as dodging blame, passing the buck, or failing to own up to strategic missteps. Leadership must act with absolute urgency by publicly acknowledging recent organizational failures, establishing clear personal ownership over company goals, and setting measurable performance targets for executives. Re-establishing accountability immediately is critical to salvage plummeting trust, rescue tanking morale, and prevent a total collapse in talent retention.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, showing that employees feel leaders rarely take responsibility when things go wrong, creating a culture of finger-pointing. Leadership needs to introduce transparent post-project reviews where executives openly discuss what didn't work alongside what did. Correcting this defensive posture will restore broken trust, foster psychological safety, and noticeably improve employee retention by showing the team that everyone answers to the same standards.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While leaders generally hit their baseline obligations, a mediocre score suggests that ownership is selective, trailing off when initiatives stall or face internal pushback. Actively improving this aspect by regularly and visibly reporting on executive-led project progress—even when targets are missed—will bridge this gap. Elevating leadership ownership here will instill greater team confidence, spark higher cross-departmental motivation, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The executive team does a good job of owning their decisions and holding themselves responsible for organizational outcomes. To fine-tune this aspect, leadership could optionally consider publishing regular, transparent retrospective summaries or tying a portion of executive compensation directly to employee-driven survey metrics. These extra steps can polish a reliable leadership team into a powerful model of modern workplace integrity.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your upper management leads by example, demonstrating exceptional ownership and radical accountability for every success and setback. Leadership should maintain the status quo, protect this highly honorable standard of governance, and keep up the amazing work. This elite level of institutional integrity is an incredibly rare asset that builds fierce employee loyalty and keeps top talent deeply committed to your long-term vision.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "fair-evaluation") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis where the evaluation system is widely perceived as completely rigged, biased, or driven entirely by favoritism. Leadership must act with absolute urgency by halting the current review cycle, stripping out subjective metrics, and mandating transparent, standardized evaluation scorecards across all departments. Rectifying this critical injustice immediately is vital to stop rapidly spreading resentment, protect employee mental health, and prevent a massive drain of your best talent.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, indicating that employees feel their hard work goes unnoticed because the review criteria are vague, inconsistent, or changing without warning. Leadership needs to establish concrete, documented Key Performance Indicators (KPIs) and train managers on how to apply them objectively. Removing this guesswork will restore broken trust, reduce review-season anxiety, and noticeably improve talent retention by proving that success is tied to performance, not politics.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the process is baseline functional, a mediocre score here shows that subtle biases or varying management styles are keeping evaluations from being truly equitable. Actively improving this aspect by implementing regular calibration sessions between managers to align rating standards and offering a clear, safe process for employees to appeal reviews will bridge this gap. Elevating evaluation equity will unlock higher daily motivation, build a stronger meritocracy, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of keeping performance evaluations fair and data-driven, creating a generally trusting atmosphere. To fine-tune this process, leadership could optionally consider introducing 360-degree feedback loops—allowing inputs from peers and subordinates—or piloting continuous, lightweight pulse reviews instead of relying solely on annual evaluations. These optional enhancements can polish a good process into an industry-leading standard for operational fairness.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "An outstanding score demonstrates that your performance evaluation system is exceptionally transparent, objective, and deeply trusted by the entire workforce. Leadership should maintain the status quo, protect these strict equity standards, and keep up the fantastic work. A review process that employees genuinely trust is a massive competitive advantage that keeps top-tier talent highly engaged and fiercely loyal to your organization.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "employee-inclusive-decision-making") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis of exclusion, indicating that decisions are handed down completely top-down, leaving employees feeling entirely voiceless and ignored. Leadership must act with absolute urgency by halting major unilateral rollouts, introducing immediate town hall listening sessions, and establishing direct employee advisory panels. Fixing this severe disconnect right away is vital to arrest plummeting morale, heal deep organizational resentment, and prevent a massive wave of resignations from staff who feel treated like cogs.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            `The low score points to significant shortcomings, showing that while leadership might occasionally ask for input, it is widely seen as a superficial, "check-the-box" exercise where employee feedback is ultimately ignored. Leadership needs to implement structured feedback loops, explicitly showing the team which suggestions were adopted and explaining the business rationale behind those that weren't. Restoring this missing influence will rebuild broken trust, lower workplace cynicism, and noticeably improve talent retention.`;
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While employees are occasionally consulted on minor matters, a mediocre score here shows that big-picture decisions are still heavily isolated, leaving teams to deal with the fallout of choices they had no hand in shaping. Actively improving this aspect by launching departmental focus groups during the early planning stages of new initiatives will bridge this gap. Elevating inclusion here will drive deeper shared ownership, reduce internal friction during changes, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The leadership team does a good job of gathering employee input and factoring staff perspectives into major organizational changes. To optimize this further, leadership could optionally consider opening up decentralized, digital ideation boards where employees can pitch and vote on internal improvements, or piloting collaborative workshop frameworks. These minor updates can turn a good feedback culture into a highly innovative, co-created workplace environment.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has mastered collaborative leadership, creating a highly collaborative environment where employees feel deeply respected and actively involved in shaping their work future. Leadership should maintain the status quo, protect these highly inclusive decision-making habits, and keep up the fantastic work. This elite level of psychological safety and shared governance is a rare asset that keeps top performers highly engaged and fiercely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "workload-distribution") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe structural breakdown, indicating an environment where a few individuals are drowning in overwork while others face minimal demands, leading to massive resentment and burnout. Leadership must intervene with absolute urgency by auditing all current team responsibilities, reassigning projects immediately, and establishing strict operational caps on individual capacities. Fixing this imbalance right away is vital to protect employee mental health, prevent catastrophic errors from exhausted staff, and halt an imminent wave of resignations.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, showing that task allocation is highly inconsistent and often rewards high performance with more work, while leaving skill gaps or underperformance unaddressed. Leadership needs to introduce objective workflow tracking systems and standardize how tasks are assigned based on role and current capacity. Eliminating this uneven strain will restore cross-team trust, reduce daily workplace anxiety, and noticeably improve talent retention by leveling the playing field.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While work is getting done and the team functions, a mediocre score suggests that distribution is reactive, with bottlenecks frequently forming around specific subject matter experts or senior team members. Actively improving this aspect by cross-training employees to share specialized tasks and implementing transparent sprint planning will bridge this gap. Elevating distribution efficiency here will alleviate hidden burnout, build a more resilient team structure, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The management team does a good job of monitoring capacities and keeping the workload relatively balanced across the department. To fine-tune this success, leadership could optionally consider introducing collaborative resource-allocation software or setting up a quarterly "capacity check-in" separate from standard project updates. These minor additions can help turn a balanced team into a highly agile, sustainable execution engine.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has mastered resource allocation, ensuring that everyone contributes equitably and sustainably without anyone facing burnout. Leadership should maintain the status quo, document these balancing methodologies as company-wide best practices, and keep up the fantastic work. A work environment that genuinely respects and balances employee capacity is a rare asset that drives massive loyalty and keeps high performers deeply engaged.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "team-general-efficacy") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe productivity and execution crisis, indicating that pervasive underperformance, lack of skill, or low motivation are actively stalling daily operations. Leadership must act with absolute urgency by stepping in with immediate performance audits, establishing clear baseline competency standards, and structuring intensive training or performance improvement plans (PIPs). Correcting these fundamental team deficiencies right away is vital to rescue crashing operational momentum and prevent a total breakdown of company workflows.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant skill or alignment gaps, showing that team members frequently miss objectives, lack accountability, or struggle to collaborate effectively. Leadership needs to introduce structured skills-gap assessments, clear up overlapping role responsibilities, and provide targeted training programs. Resolving these capabilities gaps will restore operational consistency, reduce peer-to-peer friction, and noticeably improve overall team output.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the team is keeping things functional and meeting basic requirements, a mediocre score suggests they are operating mechanically rather than as a highly cohesive, proactive unit. Actively improving this aspect by fostering cross-training initiatives, setting stretch goals, and introducing team-wide problem-solving workshops will bridge this gap. Elevating collective capabilities here will boost day-to-day momentum, spark higher internal collaboration, and unlock greater project success.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Team members are highly capable, doing a good job of collaborating, and consistently delivering solid results. To fine-tune this success, leadership could optionally consider introducing cross-departmental innovation days, supporting advanced technical certifications, or sponsoring specialized skill-building networks. These extra steps can help polish a strong, dependable team into an exceptionally agile, high-performing powerhouse.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your team consists of exceptionally skilled, highly driven individuals who consistently collaborate and execute at elite levels. Leadership should maintain the status quo, ensure these high performers have the cutting-edge tools they need, and keep up the fantastic work. Having such a top-tier execution engine is a major competitive advantage that drives organizational growth and naturally attracts premium industry talent.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "team-tasks-efficacy") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe crisis in basic execution, indicating that deadlines are routinely missed, projects are permanently stalled, and accountability has completely broken down. Leadership must intervene with absolute urgency by stripping back project scopes, mandating daily stand-up syncs, and mapping out every bottleneck. Fixing this operational emergency right away is critical to protect client relationships, salvage tanking internal morale, and prevent catastrophic project failures.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant coordination gaps, showing that while tasks are attempted, poor time management, vague ownership, or skill deficits consistently cause delays. Leadership needs to introduce unified project tracking tools, train the team on estimating realistic timelines, and explicitly assign single owners to every task. Correcting these execution gaps will eliminate chaotic last-minute rushes, reduce baseline workplace anxiety, and stabilize delivery timelines.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the team generally crosses the finish line, a mediocre score suggests that hitting deadlines is an inefficient, stressful sprint that often requires constant chasing or cutting corners. Actively improving this aspect by implementing time-blocking frameworks, running retrospective meetings to dissect delays, and optimizing internal dependencies will bridge this gap. Elevating execution consistency here will prevent employee burnout, protect product quality, and boost daily operational momentum.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Team members are doing a good job of managing their workloads and consistently ensuring tasks are delivered on time. To fine-tune this success, leadership could optionally consider introducing collaborative agile frameworks (like kanban boards) or offering training on advanced sprint planning. These minor adjustments can turn a naturally reliable delivery process into an exceptionally fast, highly optimized engine.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your team members are master executors who operate with exceptional ownership, punctuality, and time management skills. Leadership should maintain the status quo, study these efficient workflows to replicate them in other departments, and keep up the fantastic work. This level of elite execution is incredibly rare and serves as a major driver for keeping high-performing talent engaged and motivated.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "team-collaboration") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe culture crisis, indicating an environment dominated by intense friction, information hoarding, or total isolation where team members refuse to assist one another. Leadership must act with absolute urgency by stepping in to address interpersonal conflicts, establishing shared team goals over individual metrics, and creating mandatory collaborative channels. Healing this deep fracture right away is vital to rescue crashing employee morale, stop toxic infighting, and prevent an immediate wave of resignations.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant shortcomings, showing that while team members work alongside each other, they operate in strict silos with minimal communication or cross-support. Leadership needs to introduce structured cross-training, shared project ownership, and regular peer alignment syncs. Breaking down these defensive barriers will reduce daily operational friction, lower workplace anxiety, and noticeably improve talent retention by fostering a sense of shared purpose.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the team maintains a polite and functional working relationship, a mediocre score suggests that collaboration is transactional, occurring only when absolutely forced by a project's architecture. Actively improving this aspect by launching collaborative brainstorming sessions, setting up structured peer-review feedback loops, and clarifying team workflows will bridge this gap. Cultivating a more naturally supportive dynamic will spark greater daily motivation, build stronger internal trust, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "Team members do a good job of collaborating, sharing knowledge freely, and stepping up to help one another when workloads peak. To fine-tune this success, leadership could optionally consider setting up dedicated digital spaces for informal knowledge sharing, launching voluntary cross-functional innovation projects, or facilitating light team-building exercises. These minor enhancements can turn a reliable group into an exceptionally unified, high-performing team.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your team has built an exceptional culture of mutual support, radical collaboration, and genuine psychological safety. Leadership should maintain the status quo, celebrate this incredible team chemistry, and protect it from disruptive organizational changes. This elite level of unity and shared trust is a massive competitive advantage that drives high engagement and keeps your top talent fiercely loyal to the company.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "team-members-accountability") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis of integrity within the team, characterized by persistent finger-pointing, excuse-making, or a complete refusal to own mistakes. Leadership must act with absolute urgency by stepping in to redefine individual roles, establishing clear consequences for missed deliverables, and introducing transparent task-tracking systems. Correcting this culture of blame right away is vital to salvage tanking team morale, protect the organization from catastrophic operational errors, and stop a critical drain of frustrated talent.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score A score in this range highlights significant shortcomings, indicating that team members frequently drop the ball, wait to be told what to do, or shy away from taking responsibility for their outcomes. Leadership needs to introduce clear, documented ownership frameworks (such as a RACI matrix) and train the team on how to proactively flag issues before they become crises. Eliminating this passivity will restore peer-to-peer trust, lower daily workplace anxiety, and noticeably improve operational consistency.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While team members generally complete their assigned tasks, a mediocre score suggests that ownership is selective, often trailing off when projects face difficulties or cross-departmental hurdles. Actively improving this aspect by shifting from task-based assignments to outcome-based goals and running regular retrospective meetings to openly discuss missteps will bridge this gap. Elevating accountability here will foster psychological safety, spark higher problem-solving initiative, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The team does a good job of demonstrating personal responsibility, consistently owning their tasks and working to fix their mistakes when things go wrong. To optimize this further, leadership could optionally consider introducing peer-led project reviews or empowering team members with greater decision-making autonomy over their workflows. These minor enhancements can help transition a naturally dependable team into a highly autonomous, self-correcting unit.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your team operates with an elite sense of professional maturity, demonstrating exceptional ownership and radical accountability for every success and setback. Leadership should maintain the status quo, celebrate this high-trust culture, and protect it from restrictive micromanagement. This level of internal integrity is an incredibly rare organizational asset that drives rapid execution and keeps top performers deeply engaged and loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "team-communication-frequency") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe breakdown in team connection, indicating an environment of absolute isolation where team members rarely speak, collaborate, or share updates. Leadership must act with absolute urgency by mandating daily stand-ups and setting up dedicated digital communication channels for the team. Resolving this critical silence immediately is vital to rescue crashing operational momentum, stop costly duplications of effort, and prevent a rapid loss of talent driven by professional alienation.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant coordination gaps, showing that updates are far too rare, inconsistent, or erratic to keep the team aligned on daily objectives. Leadership needs to introduce clear communication guidelines, such as weekly team syncs or required end-of-day progress logs. Bridging these interaction gaps will eliminate daily project guesswork, lower baseline workplace anxiety, and noticeably improve team cohesion.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the team isn't completely silent, a mediocre score suggests that peer-to-peer communication is reactive, siloed, or restricted to urgent project crises. Actively improving this aspect by implementing structured mid-week check-ins and encouraging proactive project updates will bridge this gap. Elevating the cadence of these daily touchpoints will streamline project handoffs, reduce team stress, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The team does a good job of keeping in regular touch, maintaining a healthy and consistent flow of information across projects. To fine-tune this success, leadership could optionally consider introducing collaborative task-tracking boards or hosting casual, voluntary team huddles to keep communication paths fluid. These small adjustments can easily turn a steady flow of updates into a highly agile, proactive execution loop.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your team has built a highly connected, fluid communication ecosystem where information flows seamlessly and naturally. Leadership should maintain the status quo, protect this collaborative rhythm from unnecessary tool fatigue, and keep up the fantastic work. This elite level of steady, organic alignment keeps projects moving at maximum velocity and acts as a major driver for keeping your best talent long-term.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "team-communication-quality") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis where team communication is broken, passive-aggressive, or highly confusing, leading to toxic misunderstandings and critical project errors. Leadership must act with absolute urgency by intervening in team conflicts, establishing explicit etiquette guidelines, and mandating clear, structured formats for sharing information. Fixing this toxic communication barrier immediately is vital to rescue crashing team morale, protect employee mental health, and stop an imminent wave of resignations.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score points to significant coordination shortcomings, indicating that peer updates are frequently vague, incomplete, or filled with assumptions that leave colleagues guessing. Leadership needs to introduce basic communication training and standardized templates for project handoffs and technical updates. Eliminating this conversational sloppiness will reduce daily workplace frustration, cut down on wasted re-work, and noticeably improve team alignment.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While team messages are baseline polite and informative, a mediocre score here shows that communication is often dry, transactional, or fails to convey the full context needed for seamless teamwork. Actively improving this aspect by encouraging team members to explain the "why" behind their requests and providing training on active listening will bridge this gap. Elevating the caliber of these daily interactions will spark higher collaborative motivation, build peer trust, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The team does a good job of delivering high-quality, clear, and respectful communication that keeps projects moving smoothly. To optimize this further, leadership could optionally consider running brief workshops on advanced constructive feedback or introducing visual communication tools (like collaborative whiteboards) to help teams map out complex ideas together. These minor enhancements can turn solid daily updates into highly effective, innovative exchanges.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your team communicates with exceptional clarity, empathy, and precision, making every member feel supported and completely aligned. Leadership should maintain the status quo, celebrate this rare standard of mutual understanding, and protect it from disruptive organizational changes. This elite level of team communication quality is a powerful asset that drives rapid problem-solving and keeps top talent deeply engaged and loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "team-responsiveness") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe communication bottleneck, indicating that messages, emails, and pings are routinely ignored or delayed for days, leaving projects completely paralyzed. Leadership must intervene with absolute urgency by establishing non-negotiable response-time SLAs (Service Level Agreements) and holding chronically unresponsive team members accountable. Resolving this operational gridlock immediately is critical to rescue crashing internal morale, prevent missed external deadlines, and stop a wave of resignations from deeply frustrated staff.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant coordination gaps, showing that getting a reply requires constant chasing, which creates a highly inefficient and frantic work environment. Leadership needs to establish clear team norms, such as clarifying which channels are for urgent vs. non-urgent queries and setting standard expectations for same-day replies. Eliminating these delays will lower daily workplace anxiety, remove unnecessary roadblocks, and noticeably improve operational speed.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While team members eventually reply, a mediocre score suggests that responsiveness is inconsistent, trailing off during busy periods or varying wildly depending on the individual. Actively improving this aspect by training the team on "status updates" (e.g., replying with a quick acknowledgement when a full answer takes time) and optimizing project handoff protocols will bridge this gap. Elevating responsiveness consistency here will streamline daily workflows, reduce team friction, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The team does a good job of staying attentive, generally providing prompt and helpful replies that keep daily tasks moving forward smoothly. To fine-tune this success, leadership could optionally consider introducing "focus time" blocks where team members can pause notifications to deep-work, paired with a designated protocol for true emergencies. These minor boundary adjustments can turn a fast-reply culture into a sustainable, highly productive ecosystem.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your team operates with exceptional agility and mutual respect, maintaining near-seamless, real-time collaboration. Leadership should maintain the status quo, ensure the team isn't suffering from notification fatigue or always-on burnout, and keep up the fantastic work. This elite level of team responsiveness is a powerful organizational asset that drives rapid problem-solving and keeps top talent deeply engaged.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "work-skills-alignment") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe operational and recruitment crisis, indicating that employees are trapped doing tasks that completely diverge from their expertise, leaving them feeling wasted, frustrated, and misallocated. Leadership must act with absolute urgency by auditing daily workloads, halting out-of-scope assignments, and immediately realigning individuals with their core competencies. Correcting this massive mismatch right away is vital to rescue tanking morale, stop severe skill degradation, and halt an imminent wave of resignations from top talent who feel bait-and-switched.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            'The low score highlights significant structural shortcomings, showing that administrative overhead, "busywork," or constant fire-fighting are routinely pulling employees away from the actual specialized work they were hired to do. Leadership needs to introduce objective role-boundary frameworks and review team task queues to offload or automate non-core responsibilities. Eliminating this daily distraction will lower workplace frustration, improve overall output quality, and noticeably increase talent retention.';
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While employees are able to utilize their core skills for basic obligations, a mediocre score suggests that shifting project demands or creeping responsibilities frequently dilute their focus, keeping them from doing their best work. Actively improving this aspect by co-creating updated job descriptions with staff and setting explicit, quarterly "core-work targets" will bridge this gap. Elevating alignment here will unlock higher daily motivation, maximize institutional efficiency, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The organization does a good job of keeping workloads tightly aligned with roles, allowing employees to regularly exercise and showcase the exact skill sets they bring to the table. To fine-tune this alignment, leadership could optionally consider introducing cross-functional "passion projects" or voluntary skill-swap initiatives to let employees expand their core capabilities into adjacent areas. These minor updates can turn a well-aligned team into an exceptionally innovative, multi-faceted unit.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your organization has mastered role precision, ensuring that your specialists spend their days executing at the absolute peak of their expertise. Leadership should maintain the status quo, protect these boundaries from organic role creep, and keep up the fantastic work. A culture that honors and optimizes an individual's true craft is a massive competitive advantage that drives elite-level output and keeps high-performing talent fiercely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "career-growth-path-clarity") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe career progression crisis, indicating that employees feel trapped in dead-end roles with zero visibility into how to advance within the company. Leadership must intervene with absolute urgency by building and publishing documented career ladders that clearly outline the skills and milestones required for promotion. Fixing this structural blind spot immediately is vital to arrest plummeting morale, eliminate professional despair, and halt an imminent wave of resignations from ambitious talent who feel ignored.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant structural shortcomings, showing that career advancement is widely perceived as unpredictable, vague, or driven by subjective politics rather than merit. Leadership needs to introduce clear, standardized role competencies and mandate quarterly career development conversations between managers and staff. Removing this ambiguity will replace daily professional anxiety with clear goals, restore internal trust, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While a basic promotion framework might exist on paper, a mediocre score shows that the path forward feels generic, unachievable, or disconnected from an employee's actual daily work. Actively improving this aspect by mapping out multi-directional career paths—such as distinct tracks for individual contributors vs. people managers—and offering clear individual development plans (IDPs) will bridge this gap. Elevating pathway clarity here will unlock higher daily motivation, spark greater dedication, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of outlining career progression, giving employees a realistic and encouraging view of their future with the company. To fine-tune this success, leadership could optionally consider introducing transparent internal job-shadowing programs or building a digital talent marketplace to help staff explore lateral growth opportunities across different departments. These minor additions can transform a solid promotion track into a highly dynamic, self-directed career ecosystem.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has built an exceptional meritocracy where career progression is transparent, predictable, and actively supported at every level. Leadership should maintain the status quo, continue investing in professional development resources, and keep up the fantastic work. A work culture that provides undeniable clarity on career longevity is a massive competitive advantage that keeps high performers deeply engaged and fiercely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "career-goals-support") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe talent cultivation crisis, indicating that employees feel their long-term professional aspirations are completely ignored, dismissed, or viewed as secondary to basic operational output. Leadership must act with absolute urgency by mandating immediate career-mapping sessions and ensuring managers actively advocate for their team members' professional futures. Reversing this neglect right away is vital to arrest plunging morale, eliminate the feeling of stagnation, and halt an imminent wave of resignations from ambitious high-potentials.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant cultural shortcomings, showing that while professional goals might be discussed casually, there is a distinct lack of tangible resources, follow-through, or active sponsorship from management. Leadership needs to formalize individual development plans (IDPs) and back them up with dedicated corporate learning stipends or protected time for upskilling. Replacing empty promises with concrete developmental support will restore broken trust, reduce career anxiety, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While leadership is baseline supportive and doesn't block external learning, a mediocre score suggests that career support is largely passive, putting the entire burden of growth on the employee's shoulders with little internal guidance. Actively improving this aspect by establishing internal mentorship programs and creating structured avenues for cross-departmental projects will bridge this gap. Elevating active advocacy here will unlock higher daily motivation, deepen employee loyalty, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The management team does a good job of supporting personal career growth, regularly checking in on long-term goals and offering relevant developmental milestones. To fine-tune this success, leadership could optionally consider introducing executive sponsorship matching for mid-level staff or launching a leadership development academy to prep high performers for future internal vacancies. These steps can polish a supportive culture into a powerful engine for internal mobility.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization acts as a genuine career accelerator, where leadership treats employee long-term professional growth as a core business priority. Leadership should maintain the status quo, continue fostering high-trust developmental partnerships, and keep up the fantastic work. An organization that actively builds its people into industry leaders creates a fierce competitive advantage that drives unmatched employee loyalty and attracts top-tier global talent.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "employee-micromanagement") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe crisis of control, indicating a highly suffocating environment where managers routinely fail to step back, obsessing instead over minor details and demanding relentless status updates. Leadership must act with absolute urgency by mandating immediate management training on delegation, establishing clear boundaries for operational autonomy, and actively shifting metrics from tracking desk hours to assessing actual output. Dismantling this toxic control loop right away is vital to arrest plunging morale, stop severe creative paralysis, and halt an imminent wave of resignations from top talent who feel deeply choked.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant cultural shortcomings, showing that managers frequently over-meddle and struggle to give employees the space they need to execute their work confidently. Leadership needs to introduce objective task-ownership frameworks and coach managers on how to set clear expectations rather than dictating step-by-step methods. Eliminating this over-the-shoulder management will restore broken trust, reduce daily workplace anxiety, and noticeably improve talent retention by giving employees room to breathe.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While managers generally refrain from micromanaging routine tasks, a mediocre score here shows that leadership tends to panic and over-meddle whenever project stakes rise or timelines tighten. Actively improving this aspect by implementing structured asynchronous communication norms and running calibration alignment syncs before a project kicks off will bridge this gap. Transitioning away from reactive oversight will unlock higher daily motivation, build greater manager-team trust, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of honoring independence, with managers consistently stepping back and acting as supportive guides rather than rigid gatekeepers. To fine-tune this success, leadership could optionally consider introducing output-driven project frameworks (like OKRs) that focus entirely on results, or setting up feedback loops where staff can safely evaluate management styles. These minor adjustments can polish a healthy, trust-based environment into a highly autonomous, agile workspace.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your management team has completely mastered the discipline of restraint, treating employees as fully capable owners who possess complete operational freedom. Leadership should maintain the status quo, champion these high-trust, low-oversight dynamics as core corporate values, and keep up the fantastic work. A workplace that fiercely protects and celebrates absolute autonomy is an incredibly rare asset that sparks unmatched innovation and keeps top-tier talent intensely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "employee-autonomy") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe crisis of creative and operational paralysis, indicating an environment where employees have virtually zero control over their daily workflows or decisions. Leadership must act with absolute urgency by removing rigid structural red tape, redefining approval thresholds, and coaching managers to delegate authority rather than just tasks. Restoring basic decision-making power right away is vital to reverse plummeting morale, eliminate professional stagnation, and halt an imminent wave of resignations from talent who feel like cogs in a machine.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant cultural shortcomings, showing that while employees aren't entirely trapped, they still face heavy constraints, constant second-guessing, and an explicit lack of trust. Leadership needs to introduce clear boundaries for individual ownership and establish guidelines that empower staff to solve problems independently. Eliminating this heavy-handed oversight will reduce daily workplace anxiety, boost operational speed, and noticeably improve talent retention by making employees feel valued.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While employees are given the space to handle routine, low-risk responsibilities, a mediocre score suggests that true decision-making power remains tightly concentrated at the top, slowing down execution. Actively improving this aspect by mapping out clear "freedom parameters"—where staff can execute projects without seeking permission—and encouraging safe risk-taking will bridge this gap. Elevating autonomy here will unlock higher daily motivation, spark internal problem-solving, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of honoring independence, with managers regularly providing the flexibility and trust required for employees to steer their own work. To fine-tune this success, leadership could optionally consider introducing output-driven frameworks (like OKRs) that focus entirely on results rather than methods, or offering advanced project-ownership training. These minor adjustments can turn a highly functional, trusted workforce into an exceptionally agile, self-directed team.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has built an elite culture of trust, treating employees as full owners of their domains with complete operational freedom. Leadership should maintain the status quo, champion this high-trust environment as a core corporate value, and protect it from organic bureaucracy as the company grows. A workplace that fiercely protects absolute individual autonomy is a powerful competitive advantage that drives massive innovation and keeps premium talent intensely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "leadership-trust-in-employee-decisions") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe crisis of psychological safety and professional disrespect, indicating that leadership actively second-guesses, overrides, or dismisses employee decisions. Leadership must act with absolute urgency by auditing their approval pipelines, halting top-down micromanagement, and publicly backing employee choices. Rebuilding this baseline trust right away is vital to arrest plummeting morale, eliminate complete creative paralysis, and halt an imminent wave of resignations from insulted, high-potential talent.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            'The low score highlights significant cultural shortcomings, showing that while employees are allowed to make minor choices, leadership frequently displays skepticism, over-rules outcomes, or looks for blame when things go wrong. Leadership needs to introduce objective "trust boundaries"—clear zones where employee choices are final—and establish a constructive protocol for analyzing mistakes without finger-pointing. Eliminating this ambient skepticism will lower workplace anxiety, restore broken trust, and noticeably improve talent retention.';
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While leadership baseline respects employee choices on routine tasks, a mediocre score suggests that trust vanishes whenever project stakes rise, causing executives to panic and strip away decision-making power. Actively improving this aspect by running alignment syncs before critical milestones and co-creating shared decision frameworks will bridge this gap. Transitioning away from reactive oversight will unlock higher daily motivation, build greater executive-team trust, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The leadership team does a good job of trusting employee judgment, giving staff the confidence and authority to steer projects and solve problems independently. To optimize this further, leadership could optionally consider introducing peer-led project approvals or formally expanding individual budget and strategic thresholds. These minor enhancements can help transition a naturally dependable, trusted team into a highly autonomous, self-correcting unit.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your organization operates with an elite standard of mutual respect, where leadership fiercely champions employee judgment and treats them as ultimate owners of their domains. Leadership should maintain the status quo, celebrate this high-trust culture as a core organizational asset, and protect it from restrictive bureaucracy as the company scales. This level of systemic trust is a massive competitive advantage that drives rapid innovation and keeps top performers intensely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "salary-satisfaction") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe compensation crisis, indicating that employees feel drastically underpaid, financially stressed, or severely undervalued compared to their market worth. Leadership must act with absolute urgency by conducting an immediate market equity review, correcting blatant underpayment gaps, and adjusting base pay to meet industry benchmarks. Resolving this financial desperation right away is vital to halt plummeting morale, eliminate deep professional resentment, and stop an imminent wave of resignations that could cripple operations.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant compensation shortcomings, showing that while pay may cover absolute basics, it lags noticeably behind industry standards or fails to match the complexity of the workload. Leadership needs to introduce clear, transparent salary bands, outline predictable cost-of-living adjustments, and create a structured path for performance-based raises. Closing this financial gap will replace daily financial anxiety with a sense of fairness, restore internal trust, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the currently offered compensation is baseline acceptable, a mediocre score suggests that employees feel their pay is barely keeping pace with the market or doesn't fully reflect their daily contributions and extra efforts. Actively improving this aspect by reviewing performance bonuses, introducing robust spot rewards for high impact, and clarifying the financial trajectory of their roles will bridge this gap. Elevating pay perception here will unlock higher daily motivation, deepen employee commitment, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of providing competitive compensation, allowing employees to feel financially secure and fairly rewarded for their expertise. To fine-tune this success, leadership could optionally consider enhancing the broader lifestyle benefits package, such as expanding wellness stipends, introducing profit-sharing models, or offering performance-linked equity. These small, high-value additions can turn a naturally fair base pay into a highly attractive, comprehensive rewards package.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has built an elite compensation structure that leads the market and leaves employees feeling deeply valued and securely rewarded. Leadership should maintain the status quo, run routine annual benchmarks to stay ahead of inflation and market shifts, and keep up the fantastic work. Offering a premium financial standard is a massive competitive advantage that completely eliminates salary-driven turnover and effortlessly attracts the industry's absolute top-tier talent.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "total-compensation-fairness") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe total rewards crisis, indicating that employees feel heavily exploited, drastically undercompensated, or left behind by a package that fails to compete on any level with industry standards. Leadership must act with absolute urgency by auditing the entire rewards ecosystem, benchmarking total compensation against current market data, and immediately closing severe equity gaps. Correcting this stark deficit right away is vital to rescue crashing employee morale, eliminate intense institutional resentment, and halt a catastrophic wave of talent departures.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant structural shortcomings, showing that while base salaries might keep things afloat, the broader benefits and perks package is weak, outdated, or poorly structured compared to competitors. Leadership needs to conduct a comprehensive benefits review, look into introducing better health, wellness, or retirement options, and build transparent compensation bands. Bridging this market gap will replace daily financial anxiety with a baseline sense of professional fairness and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While total compensation is baseline acceptable, a mediocre score suggests that the package feels generic, uncompetitive, or unevenly distributed, leaving employees feeling that their total effort isn't fully reflected in their rewards. Actively improving this aspect by restructuring performance-based bonuses, introducing flexible, personalized perk selection (such as home-office or lifestyle stipends), and clearly communicating the full monetary value of their benefits will bridge this gap. Elevating equity perception here will unlock higher daily motivation and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of providing a balanced, competitive total rewards package that aligns well with industry standards and leaves employees feeling fairly valued. To fine-tune this success, leadership could optionally consider introducing long-term wealth accumulation incentives, such as employee stock options, profit-sharing models, or enhanced tuition reimbursement. These strategic additions can turn a standard, solid package into a highly attractive, comprehensive rewards portfolio.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The An outstanding score proves that your organization has built a market-leading total compensation model that leaves staff feeling exceptionally valued, protected, and securely rewarded. Leadership should maintain the status quo, continue running routine annual market audits to stay ahead of industry shifts, and keep up the fantastic work. Delivering a premium, holistic standard of equity is a massive competitive advantage that completely neutralizes poaching from competitors and effortlessly retains top-tier global talent.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "perks-benefits") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe benefits crisis, indicating that the organization's perks are either completely non-existent or so outdated that employees feel vulnerable, neglected, and exposed. Leadership must act with absolute urgency by auditing the core benefits package, ensuring basic essentials like adequate health coverage are met, and eliminating out-of-pocket professional burdens. Fixing this stark deficit right away is vital to rescue crashing employee morale, remove baseline lifestyle anxieties, and halt an imminent wave of resignations to competitors with basic modern safety nets.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant package shortcomings, showing that while absolute bare-minimum essentials might be covered, the overall perks are perceived as weak, restrictive, or uncompetitive. Leadership needs to refresh the benefits menu by introducing practical support systems, such as improved mental health resources, wellness stipends, or modern parental leaves. Closing these gaps will replace daily employee frustration with a sense of security, restore corporate goodwill, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While the perks and benefits are baseline acceptable, a mediocre score suggests the current offerings feel generic, rigid, or disconnected from what employees actually need in their daily lives. Actively improving this aspect by shifting toward a flexible, "cafeteria-style" benefits model—where employees can choose between home-office stipends, learning budgets, or wellness credits—will bridge this gap. Elevating choice and relevance here will unlock higher daily motivation, maximize the actual utilization of corporate investments, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of providing a comprehensive, attractive perks and benefits portfolio that goes beyond the industry average to support employees. To fine-tune this success, leadership could optionally consider introducing specialized lifestyle perks, such as identity-theft protection, corporate discounts, or flexible sabbatical policies for long-tenured staff. These thoughtful additions can turn a naturally solid benefits plan into a highly compelling, holistic wellness engine.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has built a world-class perks and benefits ecosystem that profoundly supports employees both inside and outside the workplace. Leadership should maintain the status quo, keep up the fantastic work, and protect these high-value offerings from short-sighted cost-cutting measures. Providing a premium, deeply empathetic safety net is a massive competitive advantage that creates intense employee loyalty and makes the company a premier destination for top-tier talent.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "career-growth-satisfaction") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe talent stagnation crisis, indicating that employees feel completely trapped in dead-end roles with zero upward momentum or recognition for their tenure. Leadership must act with absolute urgency by auditing historical promotion data, addressing blocked advancement paths, and immediately advancing overlooked high performers. Fixing this complete developmental standstill right away is vital to arrest plummeting morale, eliminate professional despair, and halt an imminent wave of resignations from ambitious talent who feel completely invisible.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant structural shortcomings, showing that actual advancement is widely perceived as rare, agonizingly slow, or heavily driven by subjective politics rather than merit. Leadership needs to establish objective, data-driven promotion criteria, transparent evaluation timelines, and mandate regular progress reviews between managers and their teams. Removing this unpredictability will replace daily career anxiety with clear, achievable goals, restore organizational trust, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While promotions do occur, a mediocre score suggests that career progression feels inconsistent, highly delayed, or disconnected from the employee's actual daily impact and expanded workloads. Actively improving this aspect by mapping out clearer mid-level career milestones and creating lateral growth paths—allowing employees to expand their scope when upward slots are limited—will bridge this gap. Elevating progression consistency here will unlock higher daily motivation, spark deeper dedication, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of recognizing and advancing talent, providing a steady, encouraging upward trajectory for employees who deliver strong results. To fine-tune this success, leadership could optionally consider introducing accelerated progression tracks for elite performers or formalizing clear internal transfer pathways between different departments. These proactive adjustments can turn a naturally reliable promotion cadence into a highly dynamic, motivating growth ecosystem.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has built an exceptional, high-velocity growth culture where talent is rapidly recognized, rewarded, and elevated without friction. Leadership should maintain the status quo, protect this highly motivating meritocracy from organic bureaucracy, and keep up the fantastic work. A workplace that reliably delivers on the promise of career longevity and rapid upward mobility is an incredibly rare competitive advantage that keeps top-tier talent fiercely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "learning-opportunities-frequency") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe professional stagnation crisis, indicating an environment where skill development is virtually non-existent, leaving employees feeling left behind and technologically or operationally obsolete. Leadership must act with absolute urgency by allocating baseline training budgets, introducing core skill workshops, and mandating dedicated time for professional development. Reversing this total intellectual standstill right away is vital to rescue crashing team morale, eliminate professional despair, and stop an imminent wave of resignations from talent who feel their careers are actively dying.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant developmental shortcomings, showing that learning opportunities are rare, sporadic, or treated as an afterthought that constantly takes a backseat to daily firefighting. Leadership needs to establish a predictable, recurring training calendar and guarantee a minimum number of protected learning hours per quarter for every employee. Moving past this educational neglect will replace workplace frustration with clear growth milestones, restore internal goodwill, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While training sessions or learning resources are occasionally available, a mediocre score suggests that opportunities feel generic, infrequent, or difficult to access due to heavy, overlapping daily workloads. Actively improving this aspect by curating customized, on-demand learning paths tailored to specific roles and offering corporate subscriptions to premium educational platforms will bridge this gap. Elevating learning accessibility here will unlock higher daily motivation, spark creative problem-solving, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The organization does a good job of prioritizing growth, regularly offering relevant workshops, lunch-and-learns, or certification opportunities that keep skills sharp. To fine-tune this success, leadership could optionally consider setting up structured internal mentorship pairings or building a cross-functional "skill-swap" framework to let employees learn adjacent disciplines directly from peers. These minor programmatic updates can turn a naturally solid training routine into a highly collaborative, continuous learning ecosystem.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your organization has built an elite, high-growth culture where continuous upskilling is deeply embedded in the daily workflow. Leadership should maintain the status quo, champion these knowledge-sharing dynamics as core corporate values, and ensure learning budgets remain robust during organizational shifts. A workplace that operates as a constant intellectual accelerator is a massive competitive advantage that drives elite-level innovation and keeps top-tier talent fiercely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "learning-opportunities-quality") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe educational and skill crisis, indicating that the available training is completely useless, outdated, or fundamentally disconnected from real-world workflows. Leadership must act with absolute urgency by dismantling obsolete training programs, firing low-quality vendors, and co-designing fresh learning modules with current industry experts. Upgrading these flawed resources right away is vital to rescue crashing employee morale, eliminate the deep frustration of wasted time, and prevent an imminent wave of resignations from talent who refuse to let their professional skills degrade.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            'The low score highlights significant qualitative shortcomings, showing that while training exists, it is widely perceived as a superficial, "check-the-box" exercise that offers very little practical value or depth. Leadership needs to shift from generic, low-cost video courses to high-impact, hands-on workshops, and allocate individual training budgets that employees can spend on certified, premium industry education. Replacing low-effort content with rigorous development will restore internal trust, reduce professional anxiety, and noticeably improve talent retention.';
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the learning opportunities are baseline acceptable, a mediocre score suggests the content feels middle-of-the-road, highly theoretical, or missing the advanced, advanced-level insights required to truly elevate an employee's craft. Actively improving this aspect by shifting toward customized, role-specific learning paths, offering real-world case studies, and bringing in top-tier guest instructors will bridge this gap. Elevating training depth here will unlock higher daily motivation, maximize the actual return on corporate training investments, and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of delivering high-quality, engaging development programs that genuinely help employees sharpen their technical and soft skills. To fine-tune this success, leadership could optionally consider partnering with top-tier universities for executive or technical certificates, or introducing advanced project-simulation labs where teams can test complex strategies in a safe environment. These premium touchpoints can polish an already strong learning culture into an elite career-building engine.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your organization provides world-class, transformative educational opportunities that represent the absolute gold standard of professional upskilling. Leadership should maintain the status quo, continue backing these premium programs with robust financing, and leverage this exceptional curriculum during recruitment to attract elite performers. Operating as a premier, high-fidelity intellectual incubator is a massive competitive advantage that drives industry-leading innovation and keeps high-potential talent fiercely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "growth-after-upskilling") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe retention and cultural crisis, indicating that employees who put in the effort to learn new skills find themselves completely stuck in the exact same positions with zero reward or recognition. Leadership must act with absolute urgency by auditing recently credentialed or upskilled staff, redesigning roles to match newly acquired capabilities, and establishing formal pathways for post-training advancement. Fixing this complete developmental bottleneck right away is vital to arrest plunging morale, eliminate intense professional frustration, and halt an imminent wave of resignations from your most ambitious, self-motivated talent who feel penalized for growing.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant structural shortcomings, showing that while upskilling is casually encouraged, the organization fails to provide internal mobility, leaving staff with no choice but to look outside the company to utilize their new talents. Leadership needs to introduce formal internal promotion policies tied directly to skill acquisition and mandate that managers map out new responsibilities once an employee completes advanced training. Eliminating this dead-end dynamic will restore broken trust, reduce career anxiety, and noticeably improve talent retention by proving that self-improvement leads to actual progression.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While the organization baseline acknowledges upskilling, a mediocre score suggests that growth opportunities are inconsistent, highly delayed, or largely dependent on lucky timing rather than a structured internal pipeline. Actively improving this aspect by implementing an internal "talent marketplace"—where teams can post short-term stretch assignments or lateral projects for upskilled workers—will bridge this gap. Elevating post-training mobility here will unlock higher daily motivation, maximize the return on corporate training investments, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The organization does a good job of rewarding self-improvement, regularly offering upward or lateral career shifts to employees who proactively expand their expertise. To fine-tune this success, leadership could optionally consider creating official "skill badges" or competency tiers that unlock automatic salary reviews or priority status for internal leadership vacancies. These structured touchpoints can help transition a naturally supportive culture into a highly dynamic, merit-based growth ecosystem.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your organization operates as a highly responsive talent accelerator, where self-driven upskilling is instantly met with tangible career advancement, expanded scope, and financial reward. Leadership should maintain the status quo, champion these high-growth dynamics as core corporate values, and keep up the fantastic work. Building a workplace that reliably and rapidly capitalizes on employee evolution is a massive competitive advantage that keeps your highest performers fiercely loyal and continuously innovative.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "workload-manageability") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe operational crisis and an extreme burnout emergency, indicating that employees are drowning under unmanageable volumes of work, crushing deadlines, or unsustainable expectations. Leadership must act with absolute urgency by freezing non-essential projects, reassigning critical tasks, and implementing strict overwork boundaries. Intervening immediately to reduce this systemic pressure is vital to rescue crashing employee mental health, eliminate severe operational exhaustion, and halt an imminent wave of emergency resignations before your teams completely collapse.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant structural shortcomings, showing that while employees aren't entirely collapsed, they are routinely overworked, highly stressed, and operating with zero margin for error. Leadership needs to introduce objective capacity-planning tools, audit current resource allocations, and explicitly coach managers on how to push back on unrealistic stakeholder demands. Eliminating this chronic over-extension will lower baseline workplace anxiety, reduce high error rates caused by fatigue, and noticeably improve talent retention by giving teams breathing room.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While the workload is generally tolerable, a mediocre score suggests that shifting project deadlines, sudden fire-fighting, or poorly planned surges frequently leave employees feeling stressed and on the edge of burnout. Actively improving this aspect by mapping out more accurate project timelines, establishing clear, asynchronous communication boundaries after hours, and standardizing "buffer time" between major deliverables will bridge this gap. Stabilizing the daily pace here will unlock higher daily motivation, improve the quality of output, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of keeping workloads balanced, ensuring that employees can consistently deliver high-quality work within regular business hours without sacrificing their personal lives. To fine-tune this success, leadership could optionally consider introducing cross-training initiatives across teams to build internal backup coverage during seasonal peaks, or standardizing optional wellness days after massive product launches. These proactive measures can transition a healthy corporate environment into a highly sustainable, resilient workspace.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            'The outstanding score proves that your organization has completely mastered resource allocation and capacity design, ensuring that tasks are perfectly tuned to individual bandwidth. Leadership should maintain the status quo, fiercely protect these sustainable boundaries against sudden "scope creep," and keep up the fantastic work. A corporate culture that respects human limits while maintaining strong output is an exceptionally rare asset that maximizes long-term productivity and keeps top performers intensely loyal.';
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "overwhelming-workload-frequency") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe operational crisis and an extreme burnout emergency, indicating that employees are chronically overwhelmed and constantly drowning under unsustainable daily pressures. Leadership must act with absolute urgency by freezing non-essential projects, reassigning critical tasks, and implementing strict overwork boundaries. Intervening immediately to lift this crushing, continuous stress is vital to rescue crashing employee mental health, eliminate severe operational exhaustion, and halt an imminent wave of emergency resignations before your teams completely collapse.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant structural shortcomings, showing that employees frequently feel overwhelmed, highly stressed, and operating with zero margin for error. Leadership needs to introduce objective capacity-planning tools, audit current resource allocations, and explicitly coach managers on how to push back on unrealistic stakeholder demands. Reducing the frequency of these high-stress surges will lower baseline workplace anxiety, minimize error rates caused by fatigue, and noticeably improve talent retention by giving teams room to breathe.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While the workload is tolerable on routine days, a mediocre score suggests that sudden firefighting, shifting project deadlines, or poorly planned surges too often leave employees feeling overwhelmed. Actively improving this aspect by mapping out more accurate project timelines, establishing clear boundaries for disconnecting after hours, and standardizing "buffer time" between major deliverables will bridge this gap. Stabilizing the pace of work here will unlock higher daily motivation, improve output quality, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of keeping work balanced, ensuring that employees rarely feel overwhelmed and can consistently deliver high-quality output within regular business hours. To fine-tune this success, leadership could optionally consider introducing cross-training initiatives across teams to build internal backup coverage during seasonal peaks, or standardizing optional wellness days after massive product launches. These proactive measures can transition a healthy corporate environment into a highly sustainable, resilient workspace.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            'The outstanding score proves that your organization has completely mastered resource allocation and capacity design, ensuring that employees almost never feel overwhelmed by their responsibilities. Leadership should maintain the status quo, fiercely protect these sustainable boundaries against sudden "scope creep," and keep up the fantastic work. A corporate culture that respects human limits while maintaining strong output is an exceptionally rare asset that maximizes long-term productivity and keeps top performers intensely loyal.';
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "high-stress-burnout") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score signals a severe operational crisis and an extreme, company-wide burnout emergency. Employees are drowning under constant, high-stakes pressure, and their physical and mental well-being is actively suffering. Leadership must intervene immediately by deploying an emergency workload freeze, auditing team capacities, and forcing managers to cut non-essential deliverables. Addressing this toxic level of chronic stress right away is critical to rescue crashing employee mental health, eliminate severe operational exhaustion, and halt an imminent wave of emergency resignations before your core teams completely collapse.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant structural and cultural shortcomings, showing that while employees aren't completely incapacitated, high stress and early signs of burnout are incredibly common. Leadership needs to introduce objective capacity-planning frameworks, review resource allocation, and explicitly coach managers on how to push back on unrealistic stakeholder demands. Actively lowering this baseline anxiety will minimize high error rates caused by fatigue, restore workplace morale, and noticeably improve long-term talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While work is tolerable on regular days, a mediocre score suggests that sudden organizational shifts, poorly planned project surges, or constant firefighting frequently push employees into periods of high stress and exhaustion. Actively improving this aspect by mapping out more accurate project timelines, establishing clear boundaries against after-hours communication, and standardizing "buffer time" between major deliverables will bridge this gap. Stabilizing the daily pace here will unlock higher daily motivation, improve the quality of output, and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of keeping work balanced, ensuring that employee workloads rarely lead to high stress or physical exhaustion. To fine-tune this success, leadership could optionally consider introducing cross-training initiatives across departments to build internal backup coverage during seasonal peaks, or establishing automatic, optional wellness recovery days following massive product launches. These proactive measures can help transition a naturally healthy environment into a highly sustainable, resilient workspace.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            'The outstanding score proves that your organization has completely mastered sustainable workload design, treating employee well-being as a top-tier operational priority. Leadership should maintain the status quo, fiercely protect these healthy boundaries against organic "scope creep," and keep up the fantastic work. A workplace that achieves strong results while keeping its teams fundamentally free from high stress and burnout is an exceptionally rare competitive asset that maximizes long-term productivity and keeps premier talent intensely loyal.';
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "working-hours-satisfaction") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe scheduling and cultural crisis, indicating that employees feel trapped by punishing, unpredictable, or excessively long hours that completely destroy their personal lives. Leadership must act with absolute urgency by auditing actual logged hours, enforcing strict daily cutoff limits, and penalizing teams that mandate chronic overwork. Fixing this exploitative dynamic right away is vital to rescue crashing employee mental health, eliminate intense professional resentment, and halt an imminent wave of emergency departures before your workforce completely burns out.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant operational shortcomings, showing that while hours may not be entirely unlivable, late-night requests, weekend messages, and expected overtime are far too frequent. Leadership needs to introduce clear boundaries for disconnecting after hours, establish standard operating schedules, and coach managers to respect personal time. Eliminating this ambient scheduling pressure will lower daily employee anxiety, restore internal trust, and noticeably improve talent retention by giving people their evenings back.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While working hours are baseline acceptable on paper, a mediocre score suggests that unexpected fire-drills, poorly managed global time-zone overlaps, or chronic staffing shortages frequently drag employees into working extra hours. Actively improving this aspect by implementing formal asynchronous work norms, standardizing core collaboration hours, and hiring temporary or permanent support to cover peak operational surges will bridge this gap. Stabilizing scheduling predictability here will unlock higher daily motivation and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            "The organization does a good job of respecting standard business hours, ensuring that employees can consistently complete their tasks and close their laptops at a reasonable time. To fine-tune this success, leadership could optionally consider introducing modern scheduling flexibility, such as core-hours options (e.g., mandatory availability only between 10 AM and 3 PM, with flexibility around it) or compressed four-and-a-half-day workweeks. These proactive updates can turn a naturally healthy schedule into a highly compelling, modern workplace benefit.";
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            'An outstanding score proves that your organization has built a premier culture of time respect, treating employee personal time as a sacred boundary while maintaining excellent operational output. Leadership should maintain the status quo, champion this healthy balance as a core corporate differentiator during recruitment, and protect these boundaries from organic "scope creep" as the business grows. Offering a workplace that genuinely values time-freedom is a massive competitive advantage that effortlessly keeps elite talent intensely loyal.';
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "flexibility-level") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            'This score points to a severe cultural crisis of rigid control, indicating that employees face an unyielding, hyper-strict environment with zero grace for personal emergencies or alternative working arrangements. Leadership must act with absolute urgency by dismantling outdated "clock-punching" policies, eliminating arbitrary geographic or structural restrictions, and trusting teams to manage their time. Removing this intense micromanagement right away is vital to reverse plummeting morale, eliminate deep workplace resentment, and stop an imminent wave of resignations from talent who feel trapped.';
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant cultural shortcomings, showing that while absolute bare-minimum flexibility might be permitted on paper, requests for remote work, adjusted hours, or personal time off are met with skepticism, heavy red tape, or passive-aggressive penalties. Leadership needs to formalize transparent flexibility guidelines, establish clear core collaboration hours, and train managers to focus on outputs rather than visibility. Removing this underlying friction will lower daily anxiety, rebuild internal trust, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            "While the organization offers baseline acceptable flexibility, a mediocre score suggests that policies are highly rigid, inconsistent across different departments, or restricted to very specific scenarios, leaving employees feeling slightly constrained. Actively improving this aspect by expanding asynchronous working options, allowing for fluid start and end times, and offering predictable hybrid choice models will bridge this gap. Elevating day-to-day autonomy over where and when work happens will unlock higher daily motivation and boost overall job satisfaction.";
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The organization does a good job of providing meaningful flexibility, trusting employees to balance their personal lives with their professional commitments effectively. To fine-tune this success, leadership could optionally consider introducing advanced flexibility perks, such as fully remote "work from anywhere" weeks each year, or formalizing compressed workweek options. These modern touches can turn a naturally healthy, accommodating work culture into a highly agile, progressive workforce.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score demonstrates that your organization has built a world-class, ultra-flexible environment that treats employees with absolute trust as true owners of their schedules. Leadership should maintain the status quo, champion this high-trust freedom as a foundational corporate value during recruitment, and protect it from creeping bureaucracy as the company expands. Providing an elite standard of lifestyle integration is a massive competitive advantage that completely neutralizes poaching from competitors and keeps premium talent intensely loyal.";
-          break;
-      }
-    }
-
-    if (cruxResult.crux === "remote-hybrid-support") {
-      switch (true) {
-        case cruxResult.score <= 2:
-          cruxResult["remark"] = "Very poor";
-          cruxResult["suggestions"] =
-            "This score points to a severe cultural and technological crisis, indicating an unyielding, hyper-strict mandate for 100% in-office presence with zero tolerance for alternative arrangements. Leadership must act with absolute urgency by dismantling rigid attendance tracking, piloting basic hybrid options, and investing in fundamental digital collaboration tools. Reversing this forced proximity right away is vital to arrest plummeting morale, eliminate intense organizational resentment, and halt an imminent wave of mass resignations from high-potential talent fleeing to modern, flexible employers.";
-          break;
-        case cruxResult.score <= 4:
-          cruxResult["remark"] = "Poor";
-          cruxResult["suggestions"] =
-            "The low score highlights significant structural shortcomings, showing that while remote or hybrid work might be casually permitted on paper, requests are met with heavy skepticism, complex approval bottlenecks, or passive-aggressive visibility penalties. Leadership needs to formalize transparent hybrid policies, train managers to evaluate output over desk-time, and provide baseline home-office equipment stipends. Removing this underlying friction will lower daily workplace anxiety, rebuild internal trust, and noticeably improve talent retention.";
-          break;
-        case cruxResult.score <= 6:
-          cruxResult["remark"] = "Satisfactory";
-          cruxResult["suggestions"] =
-            'While remote or hybrid work is baseline available, a mediocre score suggests that the model is highly rigid (e.g., strictly mandated fixed days), plagued by inconsistent rules across different departments, or lacking proper asynchronous collaboration frameworks. Actively improving this aspect by shifting toward a fluid, "core-collaboration-days" model, standardizing digital documentation, and training teams on async workflow management will bridge this gap. Elevating day-to-day autonomy over where work happens will unlock higher daily motivation and boost overall job satisfaction.';
-          break;
-        case cruxResult.score <= 8:
-          cruxResult["remark"] = "Good";
-          cruxResult["suggestions"] =
-            'The organization does a good job of supporting remote and hybrid models, ensuring that employees have the digital tools, cultural trust, and physical freedom to balance office and home environments effectively. To fine-tune this success, leadership could optionally consider introducing advanced remote perks, such as "work from anywhere" weeks each year, or offering robust, recurring stipends for premium home-office ergonomic upgrades. These modern touches can help transition a naturally healthy structure into an ultra-agile, progressive workspace.';
-          break;
-        case cruxResult.score <= 10:
-          cruxResult["remark"] = "Excellent";
-          cruxResult["suggestions"] =
-            "The outstanding score proves that your organization has built a world-class, location-agnostic work ecosystem where remote and hybrid operations are seamlessly woven into the corporate DNA. Leadership should maintain the status quo, fiercely protect these modern boundaries against reactionary return-to-office trends, and keep up the fantastic work. Operating with an elite standard of digital-first trust is a massive competitive advantage that completely eliminates geographical hiring limitations and keeps premier talent intensely loyal.";
-          break;
-      }
-    }
-  });
+  Object.values(cruxesWithScores).forEach(
+    (cruxScore) =>
+      (cruxScore["suggestions"] =
+        cruxSuggestionsLookupTable[cruxScore.crux as keyof typeof cruxSuggestionsLookupTable][
+          cruxScore.remark
+        ]),
+  );
 };
-
-/*
-if (cruxResult.crux === "") {
-  switch (true) {
-    case cruxResult.score <= 2:
-      cruxResult["remark"] = "Very poor";
-      cruxResult["suggestions"] = "";
-      break;
-    case cruxResult.score <= 4:
-      cruxResult["remark"] = "Poor";
-      cruxResult["suggestions"] = "";
-      break;
-    case cruxResult.score <= 6:
-      cruxResult["remark"] = "Satisfactory";
-      cruxResult["suggestions"] = "";
-      break;
-    case cruxResult.score <= 8:
-      cruxResult["remark"] = "Good";
-      cruxResult["suggestions"] = "";
-      break;
-    case cruxResult.score <= 10:
-      cruxResult["remark"] = "Excellent";
-      cruxResult["suggestions"] = "";
-      break;
-  }
-}
-*/
