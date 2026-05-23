@@ -257,32 +257,32 @@ export const surveyQuestions: SurveyQuestion[] = [
     metric: "work-life-balance",
     crux: "leave-policy-satisfaction",
     question:
-      "Rate your satisfaction with the flexibility and adequacy of <ORGANIZATION>'s leave policy.",
+      "Rate your satisfaction with the flexibility and adequacy of your workplace's leave policy.",
   },
   {
     metric: "work-life-balance",
     crux: "employee-personal-time",
-    question: "Rate how well <ORGANIZATION> respects employees' personal time.",
+    question: "Rate how well your workplace respects employees' personal time.",
   },
   {
     metric: "psychological-safety",
     crux: "comfort-in-sharing-opinions",
-    question: "Rate how well <ORGANIZATION> respects employees' personal time.",
+    question: "Rate how comfortable you feel sharing your opinions or suggestions at work.",
   },
   {
     metric: "psychological-safety",
     crux: "contrarian-opinions-backlash-frequency",
     question:
-      "Rate how often employees get backlash for sharing contrarian (unpopular) opinions or suggestions at work.",
+      "Rate how often employees share contrarian (unpopular) opinions or suggestions at work without facing backlash or negative consequences.",
   },
   {
     metric: "psychological-safety",
-    crux: "safety-in-raising-concern",
+    crux: "safety-in-raising-concerns",
     question: "Rate how safe you feel raising concerns without fear of negative consequences.",
   },
   {
     metric: "recognition-and-appreciation",
-    crux: "employees-appreciation-frequency",
+    crux: "employee-appreciation-frequency",
     question: "Rate how often employees are appreciated by leadership for their work.",
   },
   {
@@ -298,7 +298,7 @@ export const surveyQuestions: SurveyQuestion[] = [
   {
     metric: "employee-sentiment",
     crux: "pride-in-organization",
-    question: "Rate your willingness to volunteer extra effort to complete your tasks effectively.",
+    question: "Rate how proud you are to be a part of your current organization.",
   },
   {
     metric: "employee-sentiment",
@@ -307,9 +307,8 @@ export const surveyQuestions: SurveyQuestion[] = [
   },
   {
     metric: "employee-retention",
-    crux: "approximate-employee-tenure",
-    question:
-      "Approximately how many more years do you intend to remain employed at <ORGANIZATION>?",
+    crux: "willingness-to-stay",
+    question: "Rate your willingness to remain employed at your current organization.",
   },
 ];
 
