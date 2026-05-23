@@ -2,15 +2,13 @@ import type { HydratedDocument } from "mongoose";
 import { surveyCruxes, surveyMetrics } from "../data/surveyQuestions.js";
 import type { ISurveyResponse } from "../models/surveyResponseModel.js";
 
-const toCamelCase = (str: string) =>
+const kebabToCamelCase = (str: string) =>
   str
     .split("-")
     .map((word, i) => (i === 0 ? word : `${word[0]!.toUpperCase()}${word.slice(1)}`))
     .join("");
 
-export const generateSurveyResultAndAnalytics = (
-  responses: HydratedDocument<ISurveyResponse>[],
-) => {
+export const generateSurveyResult = (responses: HydratedDocument<ISurveyResponse>[]) => {
   const allAnswers = responses.flatMap((res) => res.answers);
 
   // 0.  TO DO: Create a model for survey results
@@ -18,7 +16,7 @@ export const generateSurveyResultAndAnalytics = (
   // 1. Compute the average score for all cruxes:
   const cruxAverages = Object.fromEntries(
     surveyCruxes.map((crux) => [
-      toCamelCase(crux),
+      kebabToCamelCase(crux),
       allAnswers
         .filter((answer) => answer.crux === crux)
         .reduce(
@@ -29,8 +27,20 @@ export const generateSurveyResultAndAnalytics = (
               i < arr.length - 1
                 ? curr.answer + accum.score
                 : (curr.answer + accum.score) / arr.length,
+            remark:
+              i === arr.length - 1
+                ? (curr.answer + accum.score) / arr.length > 8
+                  ? "excellent"
+                  : (curr.answer + accum.score) / arr.length > 6
+                    ? "good"
+                    : (curr.answer + accum.score) / arr.length > 4
+                      ? "satisfactory"
+                      : (curr.answer + accum.score) / arr.length > 2
+                        ? "poor"
+                        : "critical"
+                : "",
           }),
-          { metric: "", crux: "", score: 0 },
+          { metric: "", crux: "", score: 0, remark: "" },
         ),
     ]),
   );
@@ -38,7 +48,7 @@ export const generateSurveyResultAndAnalytics = (
   // 2. Compute the average score for all metrics:
   const metricAverages = Object.fromEntries(
     surveyMetrics.map((metric) => [
-      toCamelCase(metric),
+      kebabToCamelCase(metric),
       Object.values(cruxAverages)
         .filter((cruxScore) => cruxScore.metric === metric)
         .reduce(
