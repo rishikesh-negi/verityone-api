@@ -312,6 +312,10 @@ export const surveyQuestions: SurveyQuestion[] = [
   },
 ];
 
-export const surveyMetrics = [...new Set(surveyQuestions.map((q) => q.metric))];
-export const surveyCruxes = surveyQuestions.map((q) => q.crux);
+export const surveyMetrics = [...new Set(surveyQuestions.map((q) => q.metric))] as const;
+export type SurveyMetrics = (typeof surveyMetrics)[number];
+
+export const surveyCruxes = [...surveyQuestions.map((q) => q.crux)] as const;
+export type SurveyCruxes = (typeof surveyCruxes)[number];
+
 export const numQuestions = surveyQuestions.length;
