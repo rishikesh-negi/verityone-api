@@ -1,3 +1,5 @@
+import type { SurveyCruxes, SurveyMetrics } from "../data/surveyQuestions.js";
+
 const cruxSuggestionsLookupTable = {
   "unfair-discrimination": {
     critical:
@@ -615,8 +617,8 @@ const cruxSuggestionsLookupTable = {
 
 export const generateSuggestionsForCruxScores = (cruxesWithScores: {
   [K: string]: {
-    metric: string;
-    crux: string;
+    metric: SurveyMetrics;
+    crux: SurveyCruxes;
     score: number;
     remark: "critical" | "poor" | "satisfactory" | "good" | "excellent";
   } & { [K: string]: unknown };
