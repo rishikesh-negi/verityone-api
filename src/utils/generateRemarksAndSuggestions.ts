@@ -613,17 +613,14 @@ const cruxSuggestionsLookupTable = {
   },
 };
 
-export const generateSuggestionsForCruxScores = (
-  cruxesWithScores: Record<
-    string,
-    {
-      metric: string;
-      crux: string;
-      score: number;
-      remark: "critical" | "poor" | "satisfactory" | "good" | "excellent";
-    } & { [K: string]: unknown }
-  >,
-) => {
+export const generateSuggestionsForCruxScores = (cruxesWithScores: {
+  [K: string]: {
+    metric: string;
+    crux: string;
+    score: number;
+    remark: "critical" | "poor" | "satisfactory" | "good" | "excellent";
+  } & { [K: string]: unknown };
+}) => {
   Object.values(cruxesWithScores).forEach(
     (cruxScore) =>
       (cruxScore["suggestions"] =
@@ -631,4 +628,6 @@ export const generateSuggestionsForCruxScores = (
           cruxScore.remark
         ]),
   );
+
+  return cruxesWithScores;
 };
