@@ -1,6 +1,12 @@
 import type { HydratedDocument } from "mongoose";
-import { surveyCruxes, surveyMetrics } from "../data/surveyQuestions.js";
+import {
+  surveyCruxes,
+  surveyMetrics,
+  type SurveyCruxes,
+  type SurveyMetrics,
+} from "../data/surveyQuestions.js";
 import type { ISurveyResponse } from "../models/surveyResponseModel.js";
+import { generateSuggestionsForCruxScores } from "./generateRemarksAndSuggestions.js";
 
 const kebabToCamelCase = (str: string) =>
   str
@@ -9,12 +15,19 @@ const kebabToCamelCase = (str: string) =>
     .join("");
 
 export const generateSurveyResult = (responses: HydratedDocument<ISurveyResponse>[]) => {
-  const allAnswers = responses.flatMap((res) => res.answers);
+  const allAnswers = [...responses.flatMap((res) => res.answers.toObject())];
 
   // 0.  TO DO: Create a model for survey results
 
   // 1. Compute the average score for all cruxes:
-  const cruxAverages = Object.fromEntries(
+  const cruxAverages: {
+    [K: string]: {
+      metric: SurveyMetrics;
+      crux: SurveyCruxes;
+      score: number;
+      remark: "critical" | "poor" | "satisfactory" | "good" | "excellent";
+    } & { [K: string]: unknown };
+  } = Object.fromEntries(
     surveyCruxes.map((crux) => [
       kebabToCamelCase(crux),
       allAnswers
@@ -68,4 +81,5 @@ export const generateSurveyResult = (responses: HydratedDocument<ISurveyResponse
   );
 
   // 3. Add remarks/suggestions for each crux and metric. Store the the final result in the DB:
+  const result = generateSuggestionsForCruxScores(cruxAverages);
 };
