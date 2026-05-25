@@ -43,6 +43,7 @@ const surveyResponseSchema = new Schema(
           const responseCruxesSet = new Set(v.map((answer) => answer.crux));
           if (responseCruxesSet.size !== numQuestions) return false;
           if (!surveyCruxes.every((crux) => responseCruxesSet.has(crux))) return false;
+          if (!v.every((ans) => ans.answer >= 1 && ans.answer <= 10)) return false;
           return true;
         },
         message: "Invalid or unprocessable survey response",
