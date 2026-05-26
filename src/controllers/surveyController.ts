@@ -17,6 +17,7 @@ import {
   SURVEY_COOLDOWN_MS,
   SURVEY_DURATION_DAYS_OPTIONS,
 } from "../utils/constants.js";
+import mongoose from "mongoose";
 
 export const createSurvey = catchAsyncError(async (req, res, next) => {
   const workplace = req.user?.id;
@@ -54,22 +55,44 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
 });
 
 export const endSurvey = catchAsyncError(async (req, res, next) => {
-  const surveyId = req.params;
+  const { surveyId } = req.params as { [K: string]: string };
   const orgId = (req.user as WorkplaceDocument).id;
 
   const survey = await Survey.findOne({ _id: surveyId, workplace: orgId, hasConcluded: false });
   if (!survey) return next(new NotFoundError("No such survey found"));
 
   const numEmployees = (req.user as WorkplaceDocument).numEmployees;
-  const numParticipants = await SurveyResponse.countDocuments({ survey: surveyId });
+  const numParticipants = await SurveyResponse.countDocuments({
+    survey: new mongoose.Types.ObjectId(surveyId),
+  });
   const participation = numParticipants / numEmployees;
   if (participation < 0.6)
     return next(
       new UnprocessableContentError(
-        "Cannot manually end a survey with participation rate less than 60%",
+        "Cannot manually end a survey until participation rate reaches 60%",
       ),
     );
 
-  // 1. Add survey result & analytics generation logic here
+  // 1. Add survey result & analytics generation logic here:
+  const cruxAverages = await SurveyResponse.aggregate([
+    { $match: { survey: new mongoose.Types.ObjectId(surveyId) } },
+    { $unwind: "$answers" },
+    {
+      $group: {
+        _id: "$answers.crux",
+        metric: { $first: "$answers.metric" },
+        score: { $avg: "$answers.answer" },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        crux: "$_id",
+        metric: 1,
+        score: 1,
+      },
+    },
+  ]);
+
   // 2. Update survey status and conclusion date & time
 });
