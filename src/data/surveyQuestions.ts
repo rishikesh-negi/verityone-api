@@ -1,16 +1,10 @@
 export type CruxRatingOptions = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
-export type SurveyQuestion = {
-  metric: string;
-  crux: string;
-  question: string;
-};
-
 export type SurveyAnswer = Omit<SurveyQuestion, "question"> & {
   answer: CruxRatingOptions;
 };
 
-export const surveyQuestions: SurveyQuestion[] = [
+export const surveyQuestions = [
   {
     metric: "social-harmony",
     crux: "unfair-discrimination",
@@ -310,12 +304,27 @@ export const surveyQuestions: SurveyQuestion[] = [
     crux: "willingness-to-stay",
     question: "Rate your willingness to remain employed at your current organization.",
   },
-];
+] as const;
 
 export const surveyMetrics = [...new Set(surveyQuestions.map((q) => q.metric))] as const;
-export type SurveyMetrics = (typeof surveyMetrics)[number];
+export type SurveyMetrics = (typeof surveyQuestions)[number]["metric"];
 
 export const surveyCruxes = [...surveyQuestions.map((q) => q.crux)] as const;
-export type SurveyCruxes = (typeof surveyCruxes)[number];
+export type SurveyCruxes = (typeof surveyQuestions)[number]["crux"];
+
+export type SurveyQuestion = {
+  metric: SurveyMetrics;
+  crux: SurveyCruxes;
+  question: string;
+};
+
+export type CruxRemark = "critical" | "poor" | "satisfactory" | "good" | "excellent";
+
+export type CruxResult = {
+  metric: SurveyMetrics;
+  crux: SurveyCruxes;
+  score: number;
+  remark: CruxRemark;
+};
 
 export const numQuestions = surveyQuestions.length;
