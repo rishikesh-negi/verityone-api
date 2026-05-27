@@ -6,3 +6,5 @@ export const surveyCreationRequestSchema = z.object({
     surveyDurationInDays: z.union(SURVEY_DURATION_DAYS_OPTIONS.map((option) => z.literal(option))),
   }),
 });
+
+export const surveyEndRequestSchema = z.object({ params: z.object({ surveyId: z.string() }) });
