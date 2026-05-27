@@ -56,10 +56,14 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
 
 export const endSurvey = catchAsyncError(async (req, res, next) => {
   const { surveyId } = req.params as { [K: string]: string };
-  const orgId = (req.user as WorkplaceDocument).id;
+  const workplaceId = (req.user as WorkplaceDocument).id;
 
-  const survey = await Survey.findOne({ _id: surveyId, workplace: orgId, hasConcluded: false });
-  if (!survey) return next(new NotFoundError("No such survey found"));
+  const survey = await Survey.findOne({
+    _id: surveyId,
+    workplace: workplaceId,
+    hasConcluded: false,
+  });
+  if (!survey) return next(new NotFoundError("No such ongoing survey found"));
 
   const numEmployees = (req.user as WorkplaceDocument).numEmployees;
   const numParticipants = await SurveyResponse.countDocuments({
@@ -74,7 +78,7 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
     );
 
   // 1. Add survey result & analytics generation logic here:
-  const cruxAverages = await SurveyResponse.aggregate([
+  const cruxAveragesAndRemarks = await SurveyResponse.aggregate([
     { $match: { survey: new mongoose.Types.ObjectId(surveyId) } },
     { $unwind: "$answers" },
     {
@@ -85,11 +89,33 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
       },
     },
     {
-      $project: {
-        _id: 0,
-        crux: "$_id",
-        metric: 1,
-        score: 1,
+      $project: { _id: 0, crux: "$_id", metric: 1, score: 1 },
+    },
+    {
+      $addFields: {
+        remark: {
+          $switch: {
+            branches: [
+              {
+                case: { $and: [{ $gt: ["$score", 8] }, { $lte: ["$score", 10] }] },
+                then: "excellent",
+              },
+              {
+                case: { $and: [{ $gt: ["$score", 6] }, { $lte: ["$score", 8] }] },
+                then: "good",
+              },
+              {
+                case: { $and: [{ $gt: ["$score", 4] }, { $lte: ["$score", 6] }] },
+                then: "satisfactory",
+              },
+              {
+                case: { $and: [{ $gt: ["$score", 2] }, { $lte: ["$score", 4] }] },
+                then: "poor",
+              },
+            ],
+            default: "critical",
+          },
+        },
       },
     },
   ]);
