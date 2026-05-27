@@ -1,4 +1,4 @@
-import type { SurveyCruxes, SurveyMetrics } from "../data/surveyQuestions.js";
+import type { CruxResult } from "../data/surveyQuestions.js";
 
 const cruxSuggestionsLookupTable = {
   "unfair-discrimination": {
@@ -615,15 +615,10 @@ const cruxSuggestionsLookupTable = {
   },
 };
 
-export const generateSuggestionsForCruxScores = (cruxesWithScores: {
-  [K: string]: {
-    metric: SurveyMetrics;
-    crux: SurveyCruxes;
-    score: number;
-    remark: "critical" | "poor" | "satisfactory" | "good" | "excellent";
-  } & { [K: string]: unknown };
-}) => {
-  Object.values(cruxesWithScores).forEach(
+export const generateSuggestionsForCruxScores = (
+  cruxesScoresAndRemarks: (CruxResult & { [K: string]: unknown })[],
+) => {
+  cruxesScoresAndRemarks.forEach(
     (cruxScore) =>
       (cruxScore["suggestions"] =
         cruxSuggestionsLookupTable[cruxScore.crux as keyof typeof cruxSuggestionsLookupTable][
@@ -631,5 +626,5 @@ export const generateSuggestionsForCruxScores = (cruxesWithScores: {
         ]),
   );
 
-  return cruxesWithScores;
+  return cruxesScoresAndRemarks;
 };
