@@ -18,6 +18,7 @@ import {
   SURVEY_DURATION_DAYS_OPTIONS,
 } from "../utils/constants.js";
 import mongoose from "mongoose";
+import { generateSuggestionsForCruxScores } from "../utils/generateRemarksAndSuggestions.js";
 
 export const createSurvey = catchAsyncError(async (req, res, next) => {
   const workplace = req.user?.id;
@@ -119,6 +120,8 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
       },
     },
   ]);
+
+  const cruxScoresAndSuggestions = generateSuggestionsForCruxScores(cruxAveragesAndRemarks);
 
   // 2. Update survey status and conclusion date & time
 });
