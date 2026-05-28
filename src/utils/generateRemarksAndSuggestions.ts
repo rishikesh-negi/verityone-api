@@ -1,4 +1,4 @@
-import type { CruxResult } from "../data/surveyQuestions.js";
+import type { CruxScoreAndRemark } from "../data/surveyQuestions.js";
 
 const cruxSuggestionsLookupTable = {
   "unfair-discrimination": {
@@ -616,7 +616,7 @@ const cruxSuggestionsLookupTable = {
 };
 
 export const generateSuggestionsForCruxScores = (
-  cruxesScoresAndRemarks: (CruxResult & { [K: string]: unknown })[],
+  cruxesScoresAndRemarks: (CruxScoreAndRemark & { [K: string]: unknown })[],
 ) => {
   cruxesScoresAndRemarks.forEach(
     (cruxScore) =>
