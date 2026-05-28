@@ -21,6 +21,7 @@ router.post(
 
 router.patch(
   "/end/:surveyId",
+  restrictTo("Workplace"),
   validateRequest(
     surveyEndRequestSchema,
     new UnprocessableContentError("Survey not found"),
