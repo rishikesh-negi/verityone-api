@@ -320,11 +320,15 @@ export type SurveyQuestion = {
 
 export type CruxRemark = "critical" | "poor" | "satisfactory" | "good" | "excellent";
 
-export type CruxResult = {
+export interface CruxScoreAndRemark {
   metric: SurveyMetrics;
   crux: SurveyCruxes;
   score: number;
   remark: CruxRemark;
-};
+}
+
+export interface CruxResult extends CruxScoreAndRemark {
+  suggestions: string;
+}
 
 export const numQuestions = surveyQuestions.length;
