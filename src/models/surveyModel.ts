@@ -37,8 +37,9 @@ const surveySchema = new Schema(
     surveyDurationInDays: { type: Number, required: true, enum: SURVEY_DURATION_DAYS_OPTIONS },
     hasConcluded: { type: Boolean, required: true, default: false },
     numParticipants: { type: Number, required: true, default: 0 },
+    participationRate: { type: Number, default: 0, min: 0, max: 1 },
     createdAt: { type: Date, required: true, default: Date.now(), immutable: true },
-    concludedAt: { type: Date, required: true, immutable: true, index: true },
+    concludedAt: { type: Date, required: true, index: true },
   },
   { timestamps: true },
 );
