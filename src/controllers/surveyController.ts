@@ -19,6 +19,8 @@ import {
 } from "../utils/constants.js";
 import mongoose from "mongoose";
 import { generateSuggestionsForCruxScores } from "../utils/generateRemarksAndSuggestions.js";
+import { generateSurveyMetricScores } from "../utils/generateSurveyMetricScores.js";
+import { SurveyResult } from "../models/surveyResultModel.js";
 
 export const createSurvey = catchAsyncError(async (req, res, next) => {
   const workplace = req.user?.id;
@@ -37,7 +39,7 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
   if (surveyCooldown)
     return next(
       new AppError(
-        `Cannot create a new survey until ${format(surveyCooldown.concludedAt.getTime() + SURVEY_COOLDOWN_MS, "MMM dd, yyyy")}`,
+        `Cannot create a new survey until ${format(surveyCooldown.concludedAt!.getTime() + SURVEY_COOLDOWN_MS, "MMM dd, yyyy")}`,
       ),
     );
 
@@ -78,7 +80,6 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
       ),
     );
 
-  // 1. Add survey result & analytics generation logic here:
   const cruxAveragesAndRemarks = await SurveyResponse.aggregate([
     { $match: { survey: new mongoose.Types.ObjectId(surveyId) } },
     { $unwind: "$answers" },
@@ -121,7 +122,33 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
     },
   ]);
 
-  const cruxScoresAndSuggestions = generateSuggestionsForCruxScores(cruxAveragesAndRemarks);
+  const cruxResults = generateSuggestionsForCruxScores(cruxAveragesAndRemarks);
+  const metricScores = generateSurveyMetricScores(cruxAveragesAndRemarks);
 
-  // 2. Update survey status and conclusion date & time
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    survey.hasConcluded = true;
+    survey.numParticipants = numParticipants;
+    survey.participationRate = participation;
+    survey.concludedAt = new Date(Date.now());
+    await survey.save({ session });
+    await SurveyResult.create(
+      [
+        {
+          survey: survey._id,
+          participants: numParticipants,
+          cruxResults,
+          metricScores,
+        },
+      ],
+      { session },
+    );
+    session.commitTransaction();
+  } catch {
+    await session.abortTransaction();
+    next(new AppError("Something went wrong!", 500));
+  } finally {
+    session.endSession();
+  }
 });
