@@ -1,5 +1,4 @@
 import { surveyMetrics, type CruxResult } from "../data/surveyQuestions.js";
-import { generateSuggestionsForCruxScores } from "./generateRemarksAndSuggestions.js";
 
 const kebabToCamelCase = (str: string) =>
   str
@@ -7,7 +6,7 @@ const kebabToCamelCase = (str: string) =>
     .map((word, i) => (i === 0 ? word : `${word[0]!.toUpperCase()}${word.slice(1)}`))
     .join("");
 
-export const generateSurveyResult = (cruxAverages: CruxResult[]) => {
+export const generateSurveyMetricScores = (cruxAverages: CruxResult[]) => {
   const metricAverages = Object.fromEntries(
     surveyMetrics.map((metric) => [
       kebabToCamelCase(metric),
