@@ -1,3 +1,22 @@
+export type SurveyQuestion = {
+  metric: SurveyMetrics;
+  crux: SurveyCruxes;
+  question: string;
+};
+
+export type CruxRemark = "critical" | "poor" | "satisfactory" | "good" | "excellent";
+
+export interface CruxScoreAndRemark {
+  metric: SurveyMetrics;
+  crux: SurveyCruxes;
+  score: number;
+  remark: CruxRemark;
+}
+
+export interface CruxResult extends CruxScoreAndRemark {
+  suggestions: string;
+}
+
 export type CruxRatingOptions = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export type SurveyAnswer = Omit<SurveyQuestion, "question"> & {
@@ -311,24 +330,5 @@ export type SurveyMetrics = (typeof surveyQuestions)[number]["metric"];
 
 export const surveyCruxes = [...surveyQuestions.map((q) => q.crux)] as const;
 export type SurveyCruxes = (typeof surveyQuestions)[number]["crux"];
-
-export type SurveyQuestion = {
-  metric: SurveyMetrics;
-  crux: SurveyCruxes;
-  question: string;
-};
-
-export type CruxRemark = "critical" | "poor" | "satisfactory" | "good" | "excellent";
-
-export interface CruxScoreAndRemark {
-  metric: SurveyMetrics;
-  crux: SurveyCruxes;
-  score: number;
-  remark: CruxRemark;
-}
-
-export interface CruxResult extends CruxScoreAndRemark {
-  suggestions: string;
-}
 
 export const numQuestions = surveyQuestions.length;
