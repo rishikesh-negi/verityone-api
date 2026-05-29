@@ -6,13 +6,13 @@ const answerSchema = z.object({
   crux: z.enum(surveyCruxes),
   response: z
     .number()
-    .min(1, "Response score should be at least 1")
+    .min(1, "Response score cannot be less than 1")
     .max(10, "Response score cannot exceed 10"),
 });
 
-export const responseSchema = z.object({
+export const surveyResponseZSchema = z.object({
   body: z.object({
-    responses: z.array(answerSchema).refine((answers) => {
+    answers: z.array(answerSchema).refine((answers) => {
       const answerCruxes = new Set(answers.map((answer) => answer.crux));
       return (
         answers.length === numQuestions &&
@@ -22,4 +22,4 @@ export const responseSchema = z.object({
     }),
   }),
 });
-export type SurveyResponseData = z.infer<typeof responseSchema>;
+export type SurveyResponseData = z.infer<typeof surveyResponseZSchema>;
