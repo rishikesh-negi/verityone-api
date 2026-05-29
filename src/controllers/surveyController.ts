@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import mongoose from "mongoose";
 import {
   AppError,
   BadRequestError,
@@ -8,19 +9,20 @@ import {
   UnauthorizedAccessError,
   UnprocessableContentError,
 } from "../errors/AppError.js";
-import type { WorkplaceDocument } from "../models/workplaceModel.js";
+import type { EmployeeDocument } from "../models/employeeModel.js";
 import { Survey } from "../models/surveyModel.js";
 import { SurveyResponse } from "../models/surveyResponseModel.js";
+import { SurveyResult } from "../models/surveyResultModel.js";
+import { UserIdentityVault } from "../models/userIdentityVaultModel.js";
+import type { WorkplaceDocument } from "../models/workplaceModel.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
 import {
   MIN_EMPLOYEES_TO_SURVEY,
   SURVEY_COOLDOWN_MS,
   SURVEY_DURATION_DAYS_OPTIONS,
 } from "../utils/constants.js";
-import mongoose from "mongoose";
 import { generateSuggestionsForCruxScores } from "../utils/generateRemarksAndSuggestions.js";
 import { generateSurveyMetricScores } from "../utils/generateSurveyMetricScores.js";
-import { SurveyResult } from "../models/surveyResultModel.js";
 
 export const createSurvey = catchAsyncError(async (req, res, next) => {
   const workplace = req.user?.id;
@@ -151,4 +153,30 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
   } finally {
     session.endSession();
   }
+});
+
+export const submitSurveyResponse = catchAsyncError(async (req, res, next) => {
+  const employeeId = (req.user as EmployeeDocument)._id;
+  const { surveyId } = req.params as { [K: string]: string };
+  if (!surveyId) return next(new UnprocessableContentError("Survey ID is missing or invalid"));
+
+  const anonymousId = (
+    await UserIdentityVault.findOne({ userId: employeeId }).select("anonymousId")
+  )?.anonymousId;
+  if (!anonymousId)
+    return next(
+      new UnprocessableContentError("Unable to verify your anonymity credentials internally"),
+    );
+  const { answers } = req.body;
+
+  await SurveyResponse.create({
+    survey: surveyId,
+    anonymousId: anonymousId,
+    answers,
+  });
+
+  res.status(201).json({
+    status: "success",
+    message: "Your response was recorded",
+  });
 });
