@@ -106,6 +106,7 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
+    await Workplace.findByIdAndUpdate(invite.workplace, { $inc: { numEmployees: 1 } }, { session });
     req.user = await req.user!.save({ session });
     req.user = await (req.user as EmployeeDocument).populate({
       path: "workplace",
