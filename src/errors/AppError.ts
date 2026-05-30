@@ -138,8 +138,8 @@ export class BadRequestError extends AppError {
 }
 
 export class UnprocessableContentError extends AppError {
-  constructor(message = "Invalid, malformed, or insufficient data received") {
-    super(message, 422);
+  constructor(message = "Invalid, malformed, or insufficient data received", reason?: string) {
+    super(message, 422, reason);
   }
 }
 
