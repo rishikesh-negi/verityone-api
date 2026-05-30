@@ -8,3 +8,5 @@ export const surveyCreationRequestSchema = z.object({
 });
 
 export const surveyEndRequestSchema = z.object({ params: z.object({ surveyId: z.string() }) });
+
+export const discardSurveyRequestSchema = z.object({ params: z.object({ surveyId: z.string() }) });
