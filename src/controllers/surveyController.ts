@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import {
   AppError,
   BadRequestError,
+  ForbiddebAccessError,
   NotFoundError,
   OngoingSurveyExistsError,
   TooFewEmployesToSurveyError,
@@ -68,7 +69,7 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
     workplace: workplaceId,
     hasConcluded: false,
   });
-  if (!survey) return next(new NotFoundError("No such ongoing survey found"));
+  if (!survey) return next(new NotFoundError("No ongoing survey found"));
 
   const numEmployees = (req.user as WorkplaceDocument).numEmployees;
   const numParticipants = await SurveyResponse.countDocuments({
@@ -79,6 +80,7 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
     return next(
       new UnprocessableContentError(
         "Cannot manually end a survey until participation rate reaches 60%",
+        "insufficient-survey-participation",
       ),
     );
 
@@ -179,4 +181,40 @@ export const submitSurveyResponse = catchAsyncError(async (req, res, next) => {
     status: "success",
     message: "Your response was recorded",
   });
+});
+
+export const discardSurvey = catchAsyncError(async (req, res, next) => {
+  const { surveyId } = req.params as { [K: string]: string };
+  const workplaceId = (req.user as WorkplaceDocument)._id;
+  const survey = await Survey.findOne({
+    _id: surveyId,
+    workplace: workplaceId,
+    hasConcluded: false,
+  });
+
+  if (!survey) return next(new NotFoundError("Survey not found"));
+
+  const numParticipants = await SurveyResponse.countDocuments({
+    survey: new mongoose.Types.ObjectId(surveyId),
+  });
+  const numEmployees = (req.user as WorkplaceDocument).numEmployees;
+  const participationRate = numParticipants / numEmployees;
+  if (participationRate >= 0.6)
+    return next(
+      new ForbiddebAccessError("Cannot discard a survey with a participation rate of 60% or more"),
+    );
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    await SurveyResponse.deleteMany({ survey: new mongoose.Types.ObjectId(surveyId) }, { session });
+    await survey.deleteOne({ session });
+    await session.commitTransaction();
+    res.sendStatus(204);
+  } catch {
+    await session.abortTransaction();
+    return next(new AppError("Encountered a problem while trying to discard the survey", 500));
+  } finally {
+    await session.endSession();
+  }
 });
