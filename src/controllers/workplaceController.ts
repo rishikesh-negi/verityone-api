@@ -13,7 +13,10 @@ export const getAllEmployees = catchAsyncError(async (req, res, next) => {
   const employees = await Employee.find({ workplace: (req.user as WorkplaceDocument)._id });
   if (!employees)
     return next(
-      new AppError("Encountered a problem while trying to find the employees of your workplace"),
+      new AppError(
+        "Encountered a problem while trying to find the employees of your workplace",
+        500,
+      ),
     );
 
   res.status(200).json({
