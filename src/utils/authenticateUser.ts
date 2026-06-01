@@ -31,7 +31,7 @@ export async function authenticateUser(authParams: AuthenticatorFunctionParams) 
   const workplace =
     authAction === "login" &&
     ((accountType === "Workplace" && user.id) ||
-      (accountType === "Employee" && (user as EmployeeDocument).workplace));
+      (accountType === "Employee" && (user as EmployeeDocument).workplace?._id));
   const ongoingSurvey = workplace
     ? await Survey.findOne({ workplace, hasConcluded: false }).lean()
     : null;
