@@ -21,9 +21,9 @@ import {
 } from "../errors/AppError.js";
 import { DeviceSession } from "../models/deviceSessionModel.js";
 import { Employee, type EmployeeDocument } from "../models/employeeModel.js";
-import { Workplace, type WorkplaceDocument } from "../models/workplaceModel.js";
 import { UserAccountsRegistry } from "../models/userAccountsRegistryModel.js";
-import type { AuthJWTPayload, RequestWithUser } from "../types/types.js";
+import { Workplace, type WorkplaceDocument } from "../models/workplaceModel.js";
+import type { AuthJWTPayload, RequestWithUser, UserDocument } from "../types/types.js";
 import { authenticateUser } from "../utils/authenticateUser.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
 import { checkSessionValidity } from "../utils/checkSessionValidity.js";
@@ -87,7 +87,7 @@ export const login = catchAsyncError(async function (req, res, next) {
       const { id, accountType } = await verifyAuthJWT(refreshToken, "refresh");
       const user = (await mongoose.model(accountType).findOne({ _id: id }).setOptions({
         includeUnverified: true,
-      })) as EmployeeDocument | WorkplaceDocument;
+      })) as UserDocument;
       const jwtPayload: AuthJWTPayload = { id, accountType };
       return authenticateUser({ req, res, jwtPayload, user, authAction: "login" });
     }
@@ -131,7 +131,7 @@ export const protect = catchAsyncError(async function (req, res, next) {
 
   const userId = new mongoose.Types.ObjectId(id);
   const UserModel = mongoose.model(accountType);
-  const sessionUser = (await UserModel.findById(userId)) as EmployeeDocument | WorkplaceDocument;
+  const sessionUser = (await UserModel.findById(userId)) as UserDocument;
 
   if (!sessionUser) return next(new UserNotFoundError());
   if (!sessionUser.emailIsVerified) {
@@ -150,7 +150,7 @@ export const protect = catchAsyncError(async function (req, res, next) {
     return next(new ReloginRequiredError());
   }
 
-  req.user = sessionUser;
+  (req as RequestWithUser).user = sessionUser;
   return next();
 });
 
@@ -184,7 +184,7 @@ export const verifyEmailAddress = catchAsyncError(async function (req, res, next
   return res.redirect(301, `${req.protocol}://${req.get("host")}/`);
 });
 
-export const restrictToVerified = catchAsyncError(async function (req, _res, next) {
+export const restrictToVerified = catchAsyncError<UserDocument>(async function (req, _res, next) {
   if (!req.user) return next(new UserNotFoundError());
   if (!req.user.emailIsVerified) return next(new UnverifiedEmailError());
 
@@ -193,7 +193,7 @@ export const restrictToVerified = catchAsyncError(async function (req, _res, nex
 
 export const restrictTo =
   (role: "Employee" | "Workplace") =>
-  (req: RequestWithUser, _res: Response, next: NextFunction) => {
+  (req: RequestWithUser<UserDocument>, _res: Response, next: NextFunction) => {
     if (role !== req.user?.userType) return next(new ForbiddebAccessError());
     next();
   };
