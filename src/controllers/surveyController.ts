@@ -25,11 +25,11 @@ import {
 import { generateSuggestionsForCruxScores } from "../utils/generateRemarksAndSuggestions.js";
 import { generateSurveyMetricScores } from "../utils/generateSurveyMetricScores.js";
 
-export const createSurvey = catchAsyncError(async (req, res, next) => {
-  const workplace = req.user?.id;
+export const createSurvey = catchAsyncError<WorkplaceDocument>(async (req, res, next) => {
+  const workplace = req.user.id;
   if (!workplace) return next(new UnauthorizedAccessError());
 
-  const numEmployees = (req.user as WorkplaceDocument).numEmployees;
+  const numEmployees = req.user.numEmployees;
   if (numEmployees < MIN_EMPLOYEES_TO_SURVEY) return next(new TooFewEmployesToSurveyError());
 
   const ongoingSurvey = await Survey.exists({ workplace, hasConcluded: false });
@@ -60,9 +60,9 @@ export const createSurvey = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export const endSurvey = catchAsyncError(async (req, res, next) => {
+export const endSurvey = catchAsyncError<WorkplaceDocument>(async (req, res, next) => {
   const { surveyId } = req.params as { [K: string]: string };
-  const workplaceId = (req.user as WorkplaceDocument).id;
+  const workplaceId = req.user.id;
 
   const survey = await Survey.findOne({
     _id: surveyId,
@@ -71,7 +71,7 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
   });
   if (!survey) return next(new NotFoundError("No ongoing survey found"));
 
-  const numEmployees = (req.user as WorkplaceDocument).numEmployees;
+  const numEmployees = req.user.numEmployees;
   const numParticipants = await SurveyResponse.countDocuments({
     survey: new mongoose.Types.ObjectId(surveyId),
   });
@@ -157,8 +157,8 @@ export const endSurvey = catchAsyncError(async (req, res, next) => {
   }
 });
 
-export const submitSurveyResponse = catchAsyncError(async (req, res, next) => {
-  const employeeId = (req.user as EmployeeDocument)._id;
+export const submitSurveyResponse = catchAsyncError<EmployeeDocument>(async (req, res, next) => {
+  const employeeId = req.user._id;
   const { surveyId } = req.params as { [K: string]: string };
   if (!surveyId) return next(new UnprocessableContentError("Survey ID is missing or invalid"));
 
@@ -183,9 +183,9 @@ export const submitSurveyResponse = catchAsyncError(async (req, res, next) => {
   });
 });
 
-export const discardSurvey = catchAsyncError(async (req, res, next) => {
+export const discardSurvey = catchAsyncError<WorkplaceDocument>(async (req, res, next) => {
   const { surveyId } = req.params as { [K: string]: string };
-  const workplaceId = (req.user as WorkplaceDocument)._id;
+  const workplaceId = req.user._id;
   const survey = await Survey.findOne({
     _id: surveyId,
     workplace: workplaceId,
@@ -197,7 +197,7 @@ export const discardSurvey = catchAsyncError(async (req, res, next) => {
   const numParticipants = await SurveyResponse.countDocuments({
     survey: new mongoose.Types.ObjectId(surveyId),
   });
-  const numEmployees = (req.user as WorkplaceDocument).numEmployees;
+  const numEmployees = req.user.numEmployees;
   const participationRate = numParticipants / numEmployees;
   if (participationRate >= 0.6)
     return next(

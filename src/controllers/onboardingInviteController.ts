@@ -13,7 +13,7 @@ import { Workplace, type WorkplaceDocument } from "../models/workplaceModel.js";
 import { catchAsyncError } from "../utils/catchAsyncError.js";
 import { INVITE_VALIDITY_SECONDS, WORKPLACE_FIELDS_TO_POPULATE } from "../utils/constants.js";
 
-export const createInvite = catchAsyncError(async (req, res, next) => {
+export const createInvite = catchAsyncError<WorkplaceDocument>(async (req, res, next) => {
   const { employeeId } = req.params;
   if (!employeeId) return next(new BadRequestError());
 
@@ -25,7 +25,7 @@ export const createInvite = catchAsyncError(async (req, res, next) => {
     );
 
   const existingInvite = await OnboardingInvite.findOne({
-    workplace: req.user!.id,
+    workplace: req.user.id,
     employee: employeeId,
   })
     .setOptions({ includeAllInvites: true })
@@ -44,16 +44,16 @@ export const createInvite = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  await OnboardingInvite.create({ workplace: req.user!.id, employee: employeeId });
+  await OnboardingInvite.create({ workplace: req.user.id, employee: employeeId });
   return res.status(201).json({
     status: "success",
     message: `Invite sent to ${employee.firstName}`,
   });
 });
 
-export const getAllSentInvites = catchAsyncError(async (req, res, next) => {
+export const getAllSentInvites = catchAsyncError<WorkplaceDocument>(async (req, res, next) => {
   const sentInvites = await OnboardingInvite.find({
-    workplace: (req.user as WorkplaceDocument).id,
+    workplace: req.user.id,
   });
   if (!sentInvites)
     return next(new UnprocessableContentError("Failed to retrieve onboarding invites"));
@@ -76,20 +76,20 @@ export const retractInvite = catchAsyncError(async (req, res, next) => {
   return res.sendStatus(204);
 });
 
-export const getEmployeeInvites = catchAsyncError(async (req, res, next) => {
-  const invites = await OnboardingInvite.find({ employee: req.user!.id, status: "pending" });
+export const getEmployeeInvites = catchAsyncError<EmployeeDocument>(async (req, res, next) => {
+  const invites = await OnboardingInvite.find({ employee: req.user.id, status: "pending" });
   if (!invites) return next(new AppError("Failed to retrieve onboarding invites", 500));
 
   return res.status(200).json({ status: "success", invites });
 });
 
-export const acceptInvite = catchAsyncError(async (req, res, next) => {
+export const acceptInvite = catchAsyncError<EmployeeDocument>(async (req, res, next) => {
   const { inviteId } = req.params;
   if (!inviteId) return next(new BadRequestError());
 
   const invite = await OnboardingInvite.findById(inviteId);
   if (!invite) return next(new NotFoundError("Invite not found"));
-  if (req.user!.id !== invite.employee.toString()) return next(new UnauthorizedAccessError());
+  if (req.user.id !== invite.employee.toString()) return next(new UnauthorizedAccessError());
 
   const workplaceExists = await Workplace.exists({ _id: invite.workplace, active: true });
   if (!workplaceExists) {
@@ -100,15 +100,15 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  (req.user as EmployeeDocument).workplace = invite.workplace;
+  req.user.workplace = invite.workplace;
   invite.status = "accepted";
 
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
     await Workplace.findByIdAndUpdate(invite.workplace, { $inc: { numEmployees: 1 } }, { session });
-    req.user = await req.user!.save({ session });
-    req.user = await (req.user as EmployeeDocument).populate({
+    req.user = await req.user.save({ session });
+    req.user = await req.user.populate({
       path: "workplace",
       select: WORKPLACE_FIELDS_TO_POPULATE,
       options: { session },
@@ -126,14 +126,13 @@ export const acceptInvite = catchAsyncError(async (req, res, next) => {
   }
 });
 
-export const rejectInvite = catchAsyncError(async (req, res, next) => {
+export const rejectInvite = catchAsyncError<EmployeeDocument>(async (req, res, next) => {
   const { inviteId } = req.params;
   if (!inviteId) return next(new BadRequestError());
 
   const invite = await OnboardingInvite.findById(inviteId);
   if (!invite) return next(new UnprocessableContentError());
-  if ((req.user as EmployeeDocument).id !== invite.employee.toString())
-    return next(new UnauthorizedAccessError());
+  if (req.user.id !== invite.employee.toString()) return next(new UnauthorizedAccessError());
 
   invite.status = "rejected";
   await invite.save();
