@@ -64,7 +64,7 @@ export const getAllSentInvites = catchAsyncError<WorkplaceDocument>(async (req, 
   });
 });
 
-export const retractInvite = catchAsyncError(async (req, res, next) => {
+export const retractInvite = catchAsyncError<WorkplaceDocument>(async (req, res, next) => {
   const { inviteId } = req.params;
   if (!inviteId) return next(new UnprocessableContentError("Invalid invite ID received"));
 
