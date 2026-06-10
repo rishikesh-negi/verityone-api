@@ -45,9 +45,9 @@ export const signup = catchAsyncError(async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const [newUser] = (await mongoose.model(accountType).create([req.body], { session })) as
-      | EmployeeDocument[]
-      | WorkplaceDocument[];
+    const [newUser] = (await mongoose
+      .model(accountType)
+      .create([req.body], { session })) as UserDocument[];
     if (!newUser) throw new Error();
 
     await UserAccountsRegistry.create(
